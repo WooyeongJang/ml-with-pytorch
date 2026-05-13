@@ -3,10 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="refresh" content="0; url=6주차 강의자료.ipynb">
   <title>6주차 강의자료</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#0c1729;color:#edf4ff;display:flex;align-items:center;justify-content:center;padding:24px}
+    .card{width:min(720px,100%);border:1px solid rgba(255,255,255,.12);border-radius:22px;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);padding:24px}
+    h1{font-size:28px;margin-bottom:10px}
+    p{color:#9eb1cc;line-height:1.7;margin-bottom:18px}
+    .links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    a{display:block;text-decoration:none;color:#edf4ff;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:12px 14px;transition:transform .15s ease,border-color .15s ease}
+    a:hover{transform:translateY(-1px);border-color:#37c8ff}
+    .home{display:inline-block;margin-top:18px;color:#8ddcff}
+    @media (max-width:640px){.links{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
-  <p>6주차 강의자료로 이동 중입니다. <a href="6주차 강의자료.ipynb">여기</a>를 눌러 이동하세요.</p>
+  <div class="card">
+    <h1>6주차 강의자료</h1>
+    <p>이 폴더에는 6주차 강의 차료가 들어 있습니다.</p>
+    <div class="links">
+      <a href="https://colab.research.google.com/github/WooyeongJang/ml-with-pytorch/blob/main/6%EC%A3%BC%EC%B0%A8_%EA%B0%95%EC%9D%98%EC%9E%90%EB%A3%8C/6%EC%A3%BC%EC%B0%A8%20%EA%B0%95%EC%9D%98%EC%9E%90%EB%A3%8C.ipynb" target="_blank">6주차 강의자료 (Colab)</a>
+    </div>
+    <a class="home" href="../index.html">← 메인으로 돌아가기</a>
+  </div>
 </body>
 </html>

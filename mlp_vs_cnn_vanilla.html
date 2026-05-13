@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MLP vs CNN 파라미터 공유 실습</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a;font-size:14px}
+
+header{background:#fff;border-bottom:1px solid #e0deda;padding:14px 24px;display:flex;align-items:center;gap:12px}
+header h1{font-size:17px;font-weight:600}
+header p{font-size:12px;color:#888}
+
+nav{display:flex;background:#fff;border-bottom:1px solid #e0deda}
+nav button{padding:11px 22px;border:none;background:none;font-size:13px;color:#888;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+nav button.active{color:#1a1a1a;font-weight:600;border-bottom-color:#378ADD}
+
+.page{display:none;padding:24px;gap:20px}
+.page.active{display:flex;flex-direction:column}
+
+/* cards */
+.row{display:grid;gap:16px}
+.row-2{grid-template-columns:1fr 1fr}
+.row-3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:700px){.row-2,.row-3{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #e0deda;border-radius:10px;padding:16px}
+.card h2{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.tag{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.tag-amber{background:#FFF3CD;color:#854F0B}
+.tag-blue{background:#E6F1FB;color:#185FA5}
+.tag-green{background:#EAF3DE;color:#27500A}
+
+/* controls */
+.ctrl{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ctrl label{font-size:12px;color:#666;min-width:90px}
+.ctrl input[type=range]{flex:1;accent-color:#378ADD;cursor:pointer}
+.ctrl .val{font-size:12px;font-weight:600;min-width:36px;text-align:right;background:#f0f0ea;border-radius:4px;padding:2px 6px}
+
+/* formula */
+.fml{background:#f0f4ff;border:1px solid #c8d8f4;border-radius:7px;padding:10px 12px;font-family:'Courier New',monospace;font-size:12px;line-height:1.9;margin:8px 0}
+.fml strong{color:#1D9E75;font-size:15px}
+
+/* stat chips */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chip{background:#f5f5f0;border-radius:7px;padding:8px 10px;flex:1;min-width:80px}
+.chip .cl{font-size:10px;color:#999;margin-bottom:2px}
+.chip .cv{font-size:16px;font-weight:700}
+
+/* canvas */
+canvas{display:block;border-radius:6px;width:100%;height:auto}
+
+/* matrix grid */
+.matrix-wrap{overflow-x:auto}
+.mx{border-collapse:collapse;font-size:11px;font-family:'Courier New',monospace}
+.mx td{width:32px;height:32px;text-align:center;vertical-align:middle;border:1px solid #ddd;border-radius:0;cursor:pointer;transition:background .15s}
+.mx td.pad{background:#DBEAFE;color:#1e40af}
+.mx td.inp{background:#E6F1FB;color:#185FA5}
+.mx td.flt{background:#FEF3C7;color:#92400e;font-weight:700;outline:2px solid #F59E0B}
+.mx td.out-done{background:#D1FAE5;color:#065F46}
+.mx td.out-cur{background:#059669;color:#fff;font-weight:700}
+.mx td.empty{background:#f9f9f6;color:#ccc}
+
+/* weight boxes */
+.wbox-row{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.wbox{border-radius:6px;padding:6px 10px;font-size:12px;font-family:'Courier New',monospace;font-weight:600;border:2px solid transparent;cursor:pointer;transition:transform .15s}
+.wbox:hover{transform:scale(1.06)}
+
+/* code block */
+pre{background:#1e1e2e;color:#cdd6f4;padding:14px 16px;border-radius:8px;font-size:12px;line-height:1.8;overflow-x:auto;tab-size:2}
+.kw{color:#89b4fa}.fn{color:#a6e3a1}.cm{color:#585b70}.num{color:#fab387}.str{color:#a6e3a1}
+
+/* legend */
+.leg{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0}
+.leg span{display:flex;align-items:center;gap:5px;font-size:12px;color:#666}
+.leg i{width:13px;height:13px;border-radius:3px;display:inline-block;flex-shrink:0}
+
+/* anim controls */
+.anim-row{display:flex;align-items:center;gap:10px;margin:10px 0;flex-wrap:wrap}
+.btn{padding:7px 16px;border-radius:7px;border:1px solid #ddd;background:#fff;font-size:12px;cursor:pointer;font-weight:500;display:flex;align-items:center;gap:5px}
+.btn:hover{background:#f0f0ea}
+.btn.primary{background:#378ADD;color:#fff;border-color:#378ADD}
+.btn.primary:hover{background:#185FA5}
+.btn.danger{background:#E24B4A;color:#fff;border-color:#E24B4A}
+.step-info{background:#f0f4ff;border:1px solid #c8d8f4;border-radius:7px;padding:10px 12px;font-size:13px;line-height:1.6;flex:1}
+
+/* quiz */
+.quiz-q{font-size:14px;font-weight:500;margin-bottom:12px;line-height:1.6}
+.quiz-opts{display:flex;flex-direction:column;gap:8px}
+.qopt{padding:10px 14px;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:13px;background:#fff;text-align:left;transition:background .15s}
+.qopt:hover{background:#f0f4ff;border-color:#85B7EB}
+.qopt.correct{background:#D1FAE5;border-color:#059669;color:#065F46;font-weight:600}
+.qopt.wrong{background:#FEE2E2;border-color:#E24B4A;color:#7F1D1D}
+.quiz-fb{margin-top:10px;padding:10px 12px;border-radius:7px;font-size:13px;line-height:1.6;display:none}
+.quiz-fb.show{display:block}
+.quiz-fb.ok{background:#D1FAE5;color:#065F46}
+.quiz-fb.ng{background:#FEE2E2;color:#7F1D1D}
+.quiz-next{margin-top:10px;display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>MLP vs CNN — 파라미터 공유 실습</h1>
+    <p>합성곱 신경망의 가중치 공유 원리를 직접 조작하며 이해합니다</p>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="go(0)">① 파라미터 비교</button>
+  <button onclick="go(1)">② 슬라이딩 실습</button>
+  <button onclick="go(2)">③ 가중치 공유 확인</button>
+  <button onclick="go(3)">④ 코드 생성기</button>
+  <button onclick="go(4)">⑤ 퀴즈</button>
+</nav>
+
+<!-- PAGE 0: 파라미터 비교 -->
+<div class="page active" id="p0">
+  <div class="row row-2">
+    <div class="card">
+      <h2><span class="tag tag-amber">MLP</span> 완전 연결 파라미터</h2>
+      <div class="ctrl"><label>이미지 크기 N</label><input type="range" id="m-N" min="4" max="64" step="4" value="28"><span class="val" id="mv-N">28</span></div>
+      <div class="ctrl"><label>은닉 뉴런 수</label><input type="range" id="m-H" min="32" max="1024" step="32" value="256"><span class="val" id="mv-H">256</span></div>
+      <div class="ctrl"><label>은닉층 수</label><input type="range" id="m-L" min="1" max="5" step="1" value="1"><span class="val" id="mv-L">1</span></div>
+      <div class="fml" id="mlp-fml"></div>
+      <canvas id="cv-mlp" height="80"></canvas>
+    </div>
+    <div class="card">
+      <h2><span class="tag tag-blue">CNN</span> 공유 파라미터</h2>
+      <div class="ctrl"><label>필터 크기 K</label><input type="range" id="c-K" min="1" max="7" step="2" value="3"><span class="val" id="cv-K">3</span></div>
+      <div class="ctrl"><label>필터(채널) 수</label><input type="range" id="c-F" min="8" max="256" step="8" value="32"><span class="val" id="cv-F">32</span></div>
+      <div class="ctrl"><label>입력 채널</label><input type="range" id="c-C" min="1" max="3" step="1" value="1"><span class="val" id="cv-C">1</span></div>
+      <div class="fml" id="cnn-fml"></div>
+      <canvas id="cv-cnn" height="80"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <h2>비교 요약</h2>
+    <div class="chips" id="summary-chips"></div>
+    <canvas id="cv-bar" height="70"></canvas>
+  </div>
+</div>
+
+<!-- PAGE 1: 슬라이딩 실습 -->
+<div class="page" id="p1">
+  <div class="row row-2">
+    <div class="card">
+      <h2>파라미터 설정</h2>
+      <div class="ctrl"><label>입력 크기 N</label><input type="range" id="s-N" min="4" max="8" step="1" value="6"><span class="val" id="sv-N">6</span></div>
+      <div class="ctrl"><label>필터 크기 K</label><input type="range" id="s-K" min="2" max="4" step="1" value="3"><span class="val" id="sv-K">3</span></div>
+      <div class="ctrl"><label>스트라이드 S</label><input type="range" id="s-S" min="1" max="3" step="1" value="1"><span class="val" id="sv-S">1</span></div>
+      <div class="ctrl"><label>패딩 P</label><input type="range" id="s-P" min="0" max="2" step="1" value="0"><span class="val" id="sv-P">0</span></div>
+      <div class="fml" id="slide-fml"></div>
+      <div class="anim-row">
+        <button class="btn primary" id="play-btn" onclick="togglePlay()">▶ 재생</button>
+        <button class="btn" onclick="stepBack()">◀ 이전</button>
+        <button class="btn" onclick="stepFwd()">다음 ▶</button>
+        <button class="btn" onclick="resetSlide()">↺ 초기화</button>
+      </div>
+      <div class="ctrl"><label>재생 속도</label><input type="range" id="s-spd" min="100" max="900" step="100" value="500"><span class="val" id="sv-spd">500</span>ms</div>
+      <div class="step-info" id="slide-info">재생 버튼을 누르거나 슬라이더를 조정하세요.</div>
+    </div>
+    <div class="card">
+      <h2>시각화</h2>
+      <div class="leg">
+        <span><i style="background:#B5D4F4;border:1px solid #85B7EB"></i>패딩(0)</span>
+        <span><i style="background:#E6F1FB;border:1px solid #85B7EB"></i>입력</span>
+        <span><i style="background:#FEF3C7;border:2px solid #F59E0B"></i>필터 위치</span>
+        <span><i style="background:#D1FAE5;border:1px solid #059669"></i>출력 완료</span>
+        <span><i style="background:#059669"></i>현재 출력</span>
+      </div>
+      <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+        <div><div style="font-size:11px;color:#888;margin-bottom:4px">입력 (패딩 포함)</div><div class="matrix-wrap"><table class="mx" id="tbl-in"></table></div></div>
+        <div style="font-size:20px;color:#aaa;padding-top:20px">→</div>
+        <div><div style="font-size:11px;color:#888;margin-bottom:4px">출력 특성 맵</div><div class="matrix-wrap"><table class="mx" id="tbl-out"></table></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: 가중치 공유 확인 -->
+<div class="page" id="p2">
+  <div class="card">
+    <h2>가중치 공유 실험 — 필터 위치를 바꿔도 같은 w를 사용합니다</h2>
+    <div class="row row-2">
+      <div>
+        <div class="ctrl"><label>입력 크기 N</label><input type="range" id="w-N" min="5" max="9" step="1" value="7"><span class="val" id="wv-N">7</span></div>
+        <div class="ctrl"><label>필터 크기 K</label><input type="range" id="w-K" min="2" max="4" step="1" value="3"><span class="val" id="wv-K">3</span></div>
+        <div class="ctrl"><label>필터 위치 (1D)</label><input type="range" id="w-pos" min="0" max="4" step="1" value="0"><span class="val" id="wv-pos">0</span></div>
+        <div style="margin:10px 0 4px;font-size:12px;color:#666">필터 가중치 (클릭해서 값 변경)</div>
+        <div class="wbox-row" id="wbox-row"></div>
+        <div class="fml" id="w-calc"></div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#888;margin-bottom:6px">입력 × 가중치 → 출력</div>
+        <canvas id="cv-share" height="260"></canvas>
+      </div>
+    </div>
+    <div class="fml" id="w-summary" style="margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <h2><span class="tag tag-amber">MLP</span> 비교 — 위치마다 다른 가중치</h2>
+    <canvas id="cv-mlp2" height="160"></canvas>
+    <div style="font-size:12px;color:#888;margin-top:6px">MLP: 각 연결마다 고유한 색(= 고유한 가중치). CNN: 같은 색 = 같은 가중치.</div>
+  </div>
+</div>
+
+<!-- PAGE 3: 코드 생성기 -->
+<div class="page" id="p3">
+  <div class="row row-2">
+    <div class="card">
+      <h2>설정</h2>
+      <div class="ctrl"><label>이미지 크기</label><input type="range" id="g-N" min="8" max="64" step="4" value="28"><span class="val" id="gv-N">28</span></div>
+      <div class="ctrl"><label>입력 채널</label><input type="range" id="g-C" min="1" max="3" step="1" value="1"><span class="val" id="gv-C">1</span></div>
+      <div class="ctrl"><label>필터 크기 K</label><input type="range" id="g-K" min="1" max="7" step="2" value="3"><span class="val" id="gv-K">3</span></div>
+      <div class="ctrl"><label>출력 채널</label><input type="range" id="g-F" min="8" max="128" step="8" value="32"><span class="val" id="gv-F">32</span></div>
+      <div class="ctrl"><label>스트라이드</label><input type="range" id="g-S" min="1" max="3" step="1" value="1"><span class="val" id="gv-S">1</span></div>
+      <div class="ctrl"><label>패딩</label><input type="range" id="g-P" min="0" max="3" step="1" value="0"><span class="val" id="gv-P">0</span></div>
+      <div class="ctrl"><label>MLP 은닉 뉴런</label><input type="range" id="g-H" min="32" max="1024" step="32" value="256"><span class="val" id="gv-H">256</span></div>
+      <div class="chips" id="g-chips"></div>
+    </div>
+    <div class="card">
+      <h2>생성된 PyTorch 코드</h2>
+      <pre id="g-code"></pre>
+      <button class="btn primary" style="margin-top:10px" onclick="copyCode()">복사</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 4: 퀴즈 -->
+<div class="page" id="p4">
+  <div class="card" style="max-width:640px">
+    <h2>개념 확인 퀴즈</h2>
+    <div id="quiz-area"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════ helpers ═══════════ */
+function fmt(n){return n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(0)+'K':String(n)}
+function bind(ids,fn){ids.forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',fn)})}
+function val(id){return +document.getElementById(id).value}
+function setVal(id,v){const el=document.getElementById(id);if(el)el.textContent=v}
+function sync(slId,dispId){const v=val(slId);setVal(dispId,v);return v}
+
+function go(i){
+  document.querySelectorAll('nav button').forEach((b,j)=>b.classList.toggle('active',i===j));
+  document.querySelectorAll('.page').forEach((p,j)=>p.classList.toggle('active',i===j));
+  if(i===0)drawPage0();
+  if(i===1)drawPage1();
+  if(i===2)drawPage2();
+  if(i===3)drawPage3();
+  if(i===4)drawQuiz();
+}
+
+/* ═══════════ PAGE 0 ═══════════ */
+function drawPage0(){
+  const N=sync('m-N','mv-N'),H=sync('m-H','mv-H'),L=sync('m-L','mv-L');
+  const K=sync('c-K','cv-K'),F=sync('c-F','cv-F'),C=sync('c-C','cv-C');
+  const inp=N*N;
+  let mlp=inp*H;
+  if(L>1)mlp+=H*H*(L-1);
+  const cnn=K*K*C*F;
+  const ratio=Math.round(mlp/cnn);
+  document.getElementById('mlp-fml').innerHTML=
+    `입력: ${N}² = ${inp}개 픽셀<br>${inp} × ${H}${L>1?` + ${H}×${H}×${L-1}`:''} = <strong>${fmt(mlp)}</strong>개 파라미터`;
+  document.getElementById('cnn-fml').innerHTML=
+    `K×K×채널×필터 수<br>${K}×${K}×${C}×${F} = <strong>${fmt(cnn)}</strong>개 파라미터`;
+  document.getElementById('summary-chips').innerHTML=`
+    <div class="chip"><div class="cl">MLP 파라미터</div><div class="cv" style="color:#854F0B">${fmt(mlp)}</div></div>
+    <div class="chip"><div class="cl">CNN 파라미터</div><div class="cv" style="color:#185FA5">${fmt(cnn)}</div></div>
+    <div class="chip"><div class="cl">절감 비율</div><div class="cv" style="color:#1D9E75">${fmt(ratio)}×</div></div>
+    <div class="chip"><div class="cl">이미지 크기 영향</div><div class="cv" style="font-size:12px">${N}² → MLP 폭발, CNN 무관</div></div>`;
+  drawBarChart(mlp,cnn);
+  drawMiniMLP(mlp,cnn);
+  drawMiniCNN(cnn);
+}
+
+function drawBarChart(mlp,cnn){
+  const cv=document.getElementById('cv-bar');
+  const ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||600;cv.width=W;cv.height=70;
+  ctx.clearRect(0,0,W,70);
+  const maxV=mlp;
+  [[mlp,'#BA7517','MLP: '+fmt(mlp)+'개'],[cnn,'#378ADD','CNN: '+fmt(cnn)+'개']].forEach(([v,c,lbl],i)=>{
+    const y=5+i*30,bw=Math.max((v/maxV)*(W-180),6),h=22;
+    ctx.fillStyle=c+'bb';
+    roundRect(ctx,0,y,bw,h,4);ctx.fill();
+    ctx.fillStyle=c;ctx.font='700 11px Segoe UI';
+    ctx.textBaseline='middle';ctx.textAlign='left';
+    ctx.fillText(lbl,bw+6,y+h/2);
+  });
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);
+  ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);
+  ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);
+  ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
+}
+
+function drawMiniMLP(){
+  const cv=document.getElementById('cv-mlp');
+  const ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||300;cv.width=W;cv.height=80;
+  ctx.clearRect(0,0,W,80);
+  const inN=5,outN=4,inX=20,outX=W-20;
+  function ny(i,n){return 10+i*60/(n-1);}
+  for(let i=0;i<inN;i++)for(let j=0;j<outN;j++){
+    const hue=Math.floor((i*outN+j)/(inN*outN)*300);
+    ctx.strokeStyle=`hsla(${hue},65%,60%,0.7)`;ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(inX,ny(i,inN));ctx.lineTo(outX,ny(j,outN));ctx.stroke();
+  }
+  for(let i=0;i<inN;i++){dot(ctx,inX,ny(i,inN),5,'#FEF3C7','#BA7517');}
+  for(let j=0;j<outN;j++){dot(ctx,outX,ny(j,outN),5,'#fff','#BA7517');}
+  ctx.fillStyle='#aaa';ctx.font='10px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('각 연결 = 고유 가중치',W/2,76);
+}
+function drawMiniCNN(){
+  const cv=document.getElementById('cv-cnn');
+  const ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||300;cv.width=W;cv.height=80;
+  ctx.clearRect(0,0,W,80);
+  const inN=6,K=3,cs=22,startX=(W-inN*cs)/2;
+  for(let i=0;i<inN;i++){
+    ctx.fillStyle=i>=1&&i<4?'#FEF3C7':'#E6F1FB';
+    ctx.strokeStyle=i>=1&&i<4?'#F59E0B':'#85B7EB';
+    ctx.lineWidth=i>=1&&i<4?2:0.5;
+    ctx.beginPath();ctx.rect(startX+i*cs,10,cs-1,cs-1);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#185FA5';ctx.font='10px Courier New';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(i+1,startX+i*cs+cs/2,10+cs/2);
+  }
+  const wColors=['#378ADD','#1D9E75','#BA7517'];
+  for(let k=0;k<K;k++){
+    ctx.fillStyle=wColors[k]+'55';ctx.strokeStyle=wColors[k];ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.rect(startX+k*28,50,26,22);ctx.fill();ctx.stroke();
+    ctx.fillStyle=wColors[k];ctx.font='700 10px Courier New';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('w'+(k+1),startX+k*28+13,61);
+  }
+  ctx.fillStyle='#aaa';ctx.font='10px Segoe UI';ctx.textAlign='right';
+  ctx.fillText('필터 3개만 — 어디서나 재사용',W-4,76);
+}
+function dot(ctx,x,y,r,fill,stroke){
+  ctx.beginPath();ctx.arc(x,y,r,0,2*Math.PI);
+  ctx.fillStyle=fill;ctx.fill();
+  ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();
+}
+
+bind(['m-N','m-H','m-L','c-K','c-F','c-C'],drawPage0);
+
+/* ═══════════ PAGE 1: sliding ═══════════ */
+let slideStep=-1,slideTimer=null;
+
+function slideParams(){
+  return {N:val('s-N'),K:val('s-K'),S:val('s-S'),P:val('s-P')};
+}
+function outSz(N,K,S,P){const v=Math.floor((N-K+2*P)/S)+1;return v>0?v:0;}
+
+function buildTables(){
+  const {N,K,S,P}=slideParams();
+  const eff=N+2*P,M=outSz(N,K,S,P);
+  const ti=document.getElementById('tbl-in');
+  const to=document.getElementById('tbl-out');
+  ti.innerHTML='';to.innerHTML='';
+  for(let r=0;r<eff;r++){
+    const tr=document.createElement('tr');
+    for(let c=0;c<eff;c++){
+      const td=document.createElement('td');
+      const isPad=r<P||r>=N+P||c<P||c>=N+P;
+      td.className=isPad?'pad':'inp';
+      td.textContent=isPad?'0':((r-P)*N+(c-P)+1);
+      td.id=`in-${r}-${c}`;
+      tr.appendChild(td);
+    }
+    ti.appendChild(tr);
+  }
+  if(M<=0){const tr=document.createElement('tr');const td=document.createElement('td');td.colSpan=4;td.style.color='#E24B4A';td.style.padding='8px';td.textContent='유효하지 않음';tr.appendChild(td);to.appendChild(tr);return;}
+  for(let r=0;r<M;r++){
+    const tr=document.createElement('tr');
+    for(let c=0;c<M;c++){
+      const td=document.createElement('td');
+      td.className='empty';td.textContent='?';td.id=`out-${r}-${c}`;
+      tr.appendChild(td);
+    }
+    to.appendChild(tr);
+  }
+  document.getElementById('slide-fml').innerHTML=
+    `출력 = ⌊(${N}-${K}+2×${P})/${S}⌋+1 = <strong>${M}</strong>   (총 ${M*M}번 연산)`;
+}
+
+function applyStep(step){
+  const {N,K,S,P}=slideParams();
+  const M=outSz(N,K,S,P);
+  if(M<=0)return;
+  const eff=N+2*P;
+  for(let r=0;r<eff;r++)for(let c=0;c<eff;c++){
+    const el=document.getElementById(`in-${r}-${c}`);
+    if(!el)continue;
+    const isPad=r<P||r>=N+P||c<P||c>=N+P;
+    el.className=isPad?'pad':'inp';
+  }
+  for(let r=0;r<M;r++)for(let c=0;c<M;c++){
+    const el=document.getElementById(`out-${r}-${c}`);if(!el)continue;
+    const idx=r*M+c;
+    el.className=step<0?'empty':idx<step?'out-done':idx===step?'out-cur':'empty';
+    el.textContent=step<0||idx>step?'?':idx+1;
+  }
+  if(step>=0){
+    const or=Math.floor(step/M),oc=step%M;
+    const ir=or*S,ic=oc*S;
+    for(let kr=0;kr<K;kr++)for(let kc=0;kc<K;kc++){
+      const el=document.getElementById(`in-${ir+kr}-${ic+kc}`);
+      if(el)el.className='flt';
+    }
+    document.getElementById('slide-info').innerHTML=
+      `<strong>Step ${step+1}/${M*M}</strong> — 필터: 입력 행${ir+1}~${ir+K}, 열${ic+1}~${ic+K} → 출력 [${or+1},${oc+1}]`;
+  } else {
+    document.getElementById('slide-info').textContent='재생 버튼을 누르거나 슬라이더를 조정하세요.';
+  }
+}
+
+function stepFwd(){
+  const {N,K,S,P}=slideParams();
+  const M=outSz(N,K,S,P);if(M<=0)return;
+  slideStep=Math.min(slideStep+1,M*M-1);applyStep(slideStep);
+}
+function stepBack(){
+  slideStep=Math.max(slideStep-1,-1);applyStep(slideStep);
+}
+function resetSlide(){stopPlay();slideStep=-1;buildTables();applyStep(-1);}
+function togglePlay(){
+  if(slideTimer){stopPlay();return;}
+  document.getElementById('play-btn').textContent='■ 정지';
+  document.getElementById('play-btn').classList.add('danger');
+  document.getElementById('play-btn').classList.remove('primary');
+  const spd=val('s-spd');
+  slideTimer=setInterval(()=>{
+    const {N,K,S,P}=slideParams();
+    const M=outSz(N,K,S,P);
+    slideStep++;
+    if(slideStep>=M*M){stopPlay();applyStep(M*M-1);return;}
+    applyStep(slideStep);
+  },spd);
+}
+function stopPlay(){
+  clearInterval(slideTimer);slideTimer=null;
+  document.getElementById('play-btn').textContent='▶ 재생';
+  document.getElementById('play-btn').classList.remove('danger');
+  document.getElementById('play-btn').classList.add('primary');
+}
+
+function drawPage1(){
+  sync('s-N','sv-N');sync('s-K','sv-K');sync('s-S','sv-S');sync('s-P','sv-P');
+  sync('s-spd','sv-spd');
+  stopPlay();slideStep=-1;buildTables();applyStep(-1);
+}
+bind(['s-N','s-K','s-S','s-P'],drawPage1);
+document.getElementById('s-spd').addEventListener('input',()=>setVal('sv-spd',val('s-spd')));
+
+/* ═══════════ PAGE 2: weight sharing ═══════════ */
+let wWeights=[0.5,-0.3,0.8];
+
+function drawPage2(){
+  const N=sync('w-N','wv-N'),K=sync('w-K','wv-K');
+  const maxPos=N-K;
+  document.getElementById('sl-wpos-wrap')||(()=>{})();
+  const posEl=document.getElementById('w-pos');
+  posEl.max=maxPos;
+  const pos=Math.min(val('w-pos'),maxPos);
+  posEl.value=pos;setVal('wv-pos',pos);
+  if(wWeights.length!==K)wWeights=Array.from({length:K},(_,i)=>parseFloat((Math.random()*2-1).toFixed(2)));
+  buildWboxes(K);
+  drawShareCanvas(N,K,pos);
+  drawMLPCompare(N,K);
+}
+
+function buildWboxes(K){
+  const colors=['#378ADD','#1D9E75','#BA7517','#D85A30','#7F77DD'];
+  const row=document.getElementById('wbox-row');
+  row.innerHTML='';
+  wWeights.slice(0,K).forEach((w,k)=>{
+    const b=document.createElement('div');
+    b.className='wbox';b.style.background=colors[k]+'33';b.style.borderColor=colors[k];
+    b.style.color=colors[k];
+    b.textContent=`w${k+1} = ${w.toFixed(2)}`;
+    b.title='클릭해서 값 변경';
+    b.onclick=()=>{
+      const nv=parseFloat(prompt(`w${k+1} 값 입력 (-2 ~ 2):`,w.toFixed(2)));
+      if(!isNaN(nv)){wWeights[k]=Math.max(-2,Math.min(2,nv));drawPage2();}
+    };
+    row.appendChild(b);
+  });
+}
+
+function drawShareCanvas(N,K,pos){
+  const cv=document.getElementById('cv-share');
+  const ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||400;cv.width=W;
+  const cs=Math.min(Math.floor((W-40)/N),36);
+  const H=260;cv.height=H;
+  ctx.clearRect(0,0,W,H);
+  const colors=['#378ADD','#1D9E75','#BA7517','#D85A30','#7F77DD'];
+  const inY=20,fY=90,outY=170;
+  ctx.fillStyle='#aaa';ctx.font='11px Segoe UI';ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  ctx.fillText('입력',0,inY-4);ctx.fillText('공유 가중치',0,fY-4);ctx.fillText('출력',0,outY-4);
+  for(let i=0;i<N;i++){
+    const isActive=i>=pos&&i<pos+K;
+    ctx.fillStyle=isActive?'#E6F1FB':'#f5f5f0';
+    ctx.strokeStyle=isActive?'#378ADD':'#ddd';ctx.lineWidth=isActive?1.5:0.5;
+    ctx.beginPath();ctx.rect(i*cs,inY,cs-1,cs-1);ctx.fill();ctx.stroke();
+    ctx.fillStyle=isActive?'#185FA5':'#aaa';ctx.font='11px Courier New';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(i+1,i*cs+cs/2,inY+cs/2);
+  }
+  for(let k=0;k<K;k++){
+    ctx.fillStyle=colors[k]+'55';ctx.strokeStyle=colors[k];ctx.lineWidth=2;
+    ctx.beginPath();ctx.rect(k*38,fY,34,28);ctx.fill();ctx.stroke();
+    ctx.fillStyle=colors[k];ctx.font='700 11px Courier New';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(`w${k+1}=${wWeights[k].toFixed(1)}`,k*38+17,fY+14);
+    ctx.strokeStyle=colors[k]+'aa';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(k*38+17,fY+28);ctx.lineTo((pos+k)*cs+cs/2,inY+cs-1);ctx.stroke();ctx.setLineDash([]);
+  }
+  const M=N-K+1;
+  const sum=wWeights.slice(0,K).reduce((a,w,k)=>a+w*(pos+k+1),0);
+  for(let m=0;m<M;m++){
+    const isCur=m===pos;
+    ctx.fillStyle=isCur?'#059669':'#f5f5f0';
+    ctx.strokeStyle=isCur?'#047857':'#ddd';ctx.lineWidth=isCur?2:0.5;
+    ctx.beginPath();ctx.rect(m*cs,outY,cs-1,cs-1);ctx.fill();ctx.stroke();
+    ctx.fillStyle=isCur?'#fff':'#aaa';ctx.font=(isCur?'700 ':'')+'11px Courier New';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(isCur?sum.toFixed(1):m+1,m*cs+cs/2,outY+cs/2);
+  }
+  document.getElementById('w-calc').innerHTML=
+    wWeights.slice(0,K).map((w,k)=>`w${k+1}×x${pos+k+1} = ${w.toFixed(2)}×${pos+k+1} = ${(w*(pos+k+1)).toFixed(2)}`).join('<br>')+
+    `<br>합계 = <strong>${sum.toFixed(3)}</strong>`;
+  document.getElementById('w-summary').innerHTML=
+    `<strong>핵심:</strong> 필터 위치가 0~${M-1}으로 바뀌어도 w₁~w${K}는 동일. `+
+    `MLP라면 위치마다 다른 가중치 → 총 ${N}×${K}=${N*K}개 필요. CNN은 ${K}개만.`;
+}
+
+function drawMLPCompare(N,K){
+  const cv=document.getElementById('cv-mlp2');
+  const ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||600;cv.width=W;cv.height=160;
+  ctx.clearRect(0,0,W,160);
+  const cs=Math.min(Math.floor((W-40)/N),30);
+  const M=N-K+1;
+  const colors=['#E24B4A','#378ADD','#1D9E75','#BA7517','#7F77DD','#D4537E','#639922','#D85A30','#0F6E56'];
+  ctx.fillStyle='#aaa';ctx.font='11px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('MLP: 각 연결마다 고유한 가중치 (다른 색)',0,14);
+  let wIdx=0;
+  for(let m=0;m<M;m++){
+    for(let k=0;k<K;k++){
+      ctx.strokeStyle=colors[wIdx%colors.length]+'99';ctx.lineWidth=1.2;
+      ctx.beginPath();ctx.moveTo((m+k)*cs+cs/2,20);ctx.lineTo(m*cs+cs/2+20,110);ctx.stroke();
+      wIdx++;
+    }
+  }
+  for(let i=0;i<N;i++){
+    ctx.fillStyle='#E6F1FB';ctx.strokeStyle='#85B7EB';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.rect(i*cs,20,cs-1,20);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#185FA5';ctx.font='10px Courier New';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(i+1,i*cs+cs/2,30);
+  }
+  for(let m=0;m<M;m++){
+    ctx.fillStyle='#f5f5f0';ctx.strokeStyle='#ddd';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.rect(m*cs+20,110,cs-1,20);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#aaa';ctx.font='10px Courier New';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(m+1,m*cs+20+cs/2,120);
+  }
+  ctx.fillStyle='#E24B4A';ctx.font='11px Segoe UI';ctx.textAlign='left';
+  ctx.fillText(`MLP 파라미터: ${N}×${K} = ${N*K}개 / CNN 파라미터: ${K}개 → ${N}배 차이`,0,150);
+}
+
+bind(['w-N','w-K','w-pos'],drawPage2);
+
+/* ═══════════ PAGE 3: code gen ═══════════ */
+function drawPage3(){
+  const N=sync('g-N','gv-N'),C=sync('g-C','gv-C'),K=sync('g-K','gv-K');
+  const F=sync('g-F','gv-F'),S=sync('g-S','gv-S'),P=sync('g-P','gv-P'),H=sync('g-H','gv-H');
+  const M=outSz(N,K,S,P);
+  const cnnP=K*K*C*F+F;
+  const mlpP=N*N*C*H+H;
+  const ratio=Math.round(mlpP/cnnP);
+  document.getElementById('g-chips').innerHTML=`
+    <div class="chip"><div class="cl">CNN 파라미터</div><div class="cv" style="color:#185FA5">${fmt(cnnP)}</div></div>
+    <div class="chip"><div class="cl">MLP 파라미터 (비교)</div><div class="cv" style="color:#854F0B">${fmt(mlpP)}</div></div>
+    <div class="chip"><div class="cl">절감</div><div class="cv" style="color:#1D9E75">${fmt(ratio)}×</div></div>
+    <div class="chip"><div class="cl">출력 크기</div><div class="cv">${M>0?M+'×'+M:'—'}</div></div>`;
+  document.getElementById('g-code').innerHTML=
+`<span class="kw">import</span> torch
+<span class="kw">import</span> torch.nn <span class="kw">as</span> nn
+
+<span class="cm"># ── CNN (파라미터 공유) ──────────────────</span>
+conv = nn.<span class="fn">Conv2d</span>(
+    in_channels  = <span class="num">${C}</span>,      <span class="cm"># 입력 채널</span>
+    out_channels = <span class="num">${F}</span>,     <span class="cm"># 필터 수 (출력 채널)</span>
+    kernel_size  = <span class="num">${K}</span>,      <span class="cm"># 필터 크기 ${K}×${K}</span>
+    stride       = <span class="num">${S}</span>,      <span class="cm"># 스트라이드</span>
+    padding      = <span class="num">${P}</span>,      <span class="cm"># 패딩</span>
+)
+<span class="cm"># 파라미터 수: ${K}×${K}×${C}×${F} + ${F}(bias) = ${fmt(cnnP)}개</span>
+
+x   = torch.<span class="fn">randn</span>(<span class="num">1</span>, <span class="num">${C}</span>, <span class="num">${N}</span>, <span class="num">${N}</span>)  <span class="cm"># 입력 (batch, C, H, W)</span>
+out = conv(x)
+<span class="cm"># 출력 shape: (1, ${F}, ${M>0?M:'?'}, ${M>0?M:'?'})</span>
+<span class="kw">print</span>(<span class="str">f"CNN 파라미터: {sum(p.numel() for p in conv.parameters())}"</span>)
+
+<span class="cm"># ── MLP (비교용) ──────────────────────────</span>
+mlp = nn.<span class="fn">Sequential</span>(
+    nn.<span class="fn">Flatten</span>(),
+    nn.<span class="fn">Linear</span>(<span class="num">${N*N*C}</span>, <span class="num">${H}</span>),  <span class="cm"># 파라미터: ${fmt(N*N*C)}×${H} = ${fmt(N*N*C*H)}개</span>
+    nn.<span class="fn">ReLU</span>(),
+    nn.<span class="fn">Linear</span>(<span class="num">${H}</span>, <span class="num">10</span>),
+)
+<span class="cm"># MLP 1층 파라미터: ${fmt(mlpP)}개  →  CNN 대비 ${fmt(ratio)}배</span>
+<span class="kw">print</span>(<span class="str">f"MLP 파라미터: {sum(p.numel() for p in mlp.parameters())}"</span>)`;
+}
+
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById('g-code').innerText)
+    .then(()=>alert('복사 완료!'));
+}
+bind(['g-N','g-C','g-K','g-F','g-S','g-P','g-H'],drawPage3);
+
+/* ═══════════ PAGE 4: quiz ═══════════ */
+const QUIZ=[
+  {q:'28×28 이미지를 MLP 256뉴런 1층에 연결하면 파라미터는?',opts:['784','200,704','256','28'],ans:1,fb:'784픽셀 × 256뉴런 = 200,704개. 완전 연결이라 모든 쌍마다 가중치가 필요합니다.'},
+  {q:'3×3 필터 32개로 CNN 1층을 만들면 파라미터는? (입력 채널=1)',opts:['32','288','9','96'],ans:1,fb:'3×3×1×32 = 288개. 필터 크기와 수에만 의존하고 이미지 크기와 무관합니다.'},
+  {q:'CNN에서 같은 필터가 이미지 전체에서 재사용되는 성질은?',opts:['드롭아웃','파라미터 공유','배치 정규화','과적합'],ans:1,fb:'파라미터 공유(Parameter Sharing). 이 덕분에 파라미터 수가 극적으로 줄고 이동 불변성이 생깁니다.'},
+  {q:'이미지 크기가 2배(28→56)가 될 때 CNN 파라미터는?',opts:['4배 증가','2배 증가','변하지 않음','8배 증가'],ans:2,fb:'CNN 파라미터는 K×K×C×F로, 이미지 크기와 무관합니다. 반면 MLP는 이미지 크기 제곱에 비례해 폭발합니다.'},
+  {q:'CNN 필터 하나가 이미지 어느 위치에서든 같은 패턴을 감지할 수 있는 성질은?',opts:['과적합','기울기 소실','이동 불변성','배치 크기'],ans:2,fb:'이동 불변성(Translation Invariance). 같은 가중치를 전체에서 공유하므로 물체가 어디에 있어도 같은 특징을 잡아냅니다.'},
+];
+let qIdx=0,answered=false;
+function drawQuiz(){
+  qIdx=0;answered=false;renderQ();
+}
+function renderQ(){
+  const q=QUIZ[qIdx];answered=false;
+  document.getElementById('quiz-area').innerHTML=`
+    <div style="font-size:11px;color:#aaa;margin-bottom:8px">문제 ${qIdx+1} / ${QUIZ.length}</div>
+    <div class="quiz-q">${q.q}</div>
+    <div class="quiz-opts">${q.opts.map((o,i)=>`<button class="qopt" onclick="answer(${i})">${o}</button>`).join('')}</div>
+    <div class="quiz-fb" id="qfb">${q.fb}</div>
+    <div class="quiz-next"><button class="btn primary" onclick="nextQ()">${qIdx<QUIZ.length-1?'다음 문제 →':'결과 보기'}</button></div>`;
+}
+function answer(i){
+  if(answered)return;answered=true;
+  const q=QUIZ[qIdx];
+  const opts=document.querySelectorAll('.qopt');
+  opts.forEach((b,j)=>{if(j===q.ans)b.classList.add('correct');else if(j===i)b.classList.add('wrong');b.disabled=true;});
+  const fb=document.getElementById('qfb');fb.className='quiz-fb show '+(i===q.ans?'ok':'ng');
+  document.querySelector('.quiz-next').style.display='block';
+}
+function nextQ(){
+  qIdx++;
+  if(qIdx>=QUIZ.length){
+    document.getElementById('quiz-area').innerHTML=`
+      <div style="text-align:center;padding:20px">
+        <div style="font-size:32px;margin-bottom:12px">완료!</div>
+        <div style="font-size:14px;color:#555;margin-bottom:16px">파라미터 공유의 핵심 개념을 모두 확인했습니다.</div>
+        <button class="btn primary" onclick="drawQuiz()">다시 풀기</button>
+      </div>`;
+    return;
+  }
+  renderQ();
+}
+
+/* init */
+drawPage0();
+</script>
+</body>
+</html>

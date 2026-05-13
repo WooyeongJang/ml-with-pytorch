@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>11주차 | 인공지능과 기계학습</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:#2a2a2a;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px}
+
+.slide{width:900px;height:506px;background:#fff;position:relative;display:none;flex-direction:column;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.5)}
+.slide.active{display:flex}
+
+.hd{background:linear-gradient(135deg,#3d2f8f 60%,#6a4dbf 100%);padding:10px 20px 10px 22px;display:flex;align-items:center;min-height:52px;position:relative}
+.hd::after{content:'';position:absolute;right:0;top:0;width:0;height:0;border-style:solid;border-width:52px 70px 0 0;border-color:#3d2f8f transparent transparent transparent;filter:brightness(1.25)}
+.hd-title{color:#fff;font-size:15px;font-weight:700;letter-spacing:.02em}
+.sec-badge{background:#fff;color:#3d2f8f;font-size:11px;font-weight:700;padding:3px 10px;border-radius:3px;margin-right:12px;white-space:nowrap;flex-shrink:0}
+
+.body{flex:1;padding:16px 24px 32px;overflow:hidden;position:relative}
+
+.footer{position:absolute;bottom:0;left:0;right:0;height:26px;border-top:2px solid #3d2f8f;display:flex;align-items:center;padding:0 18px;background:#fff}
+.dots{display:flex;gap:3px;align-items:center}
+.dots span{width:5px;height:5px;background:#3d2f8f;border-radius:50%;display:inline-block}
+.dots span:nth-child(odd){opacity:.45}
+.pg{position:absolute;right:18px;bottom:4px;font-size:12px;font-weight:700;color:#3d2f8f}
+
+/* 다크 슬라이드 */
+.slide.dark{background:#0f1729}
+.slide.dark .footer{background:#0f1729;border-top-color:#378ADD}
+.slide.dark .pg{color:#60a5fa}
+.slide.dark .dots span{background:#378ADD}
+
+/* 목차 */
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+.toc-card{border:1.5px solid #3d2f8f;border-radius:8px;padding:14px 16px}
+.toc-num{font-size:22px;font-weight:800;color:#e8e4f8;margin-bottom:2px}
+.toc-title{font-size:14px;font-weight:700;color:#3d2f8f;margin-bottom:7px}
+.toc-items{list-style:none}
+.toc-items li{font-size:11px;color:#444;padding:3px 0;display:flex;align-items:center;gap:5px}
+.toc-items li::before{content:'•';color:#3d2f8f;font-weight:700}
+
+/* 섹션 인트로 */
+.sec-intro{display:flex;flex-direction:column;justify-content:center;height:100%;padding:8px 0}
+.sec-intro-title{font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:14px;border-left:5px solid #3d2f8f;padding-left:14px}
+.sec-sub-list{list-style:none;display:flex;flex-direction:column;gap:9px}
+.sec-sub-list li{display:flex;align-items:center;gap:10px;font-size:13px;color:#333;padding:9px 14px;background:#f8f7ff;border-radius:7px;border:1px solid #e0d8f8}
+.sec-sub-list li .num{background:#3d2f8f;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;flex-shrink:0}
+
+/* 다크 카드 (인공신경망 계보용) */
+.dk-card{background:#1a2340;border:1px solid #2a3a60;border-radius:8px;padding:12px 14px}
+.dk-card-title{font-size:12px;font-weight:700;color:#60a5fa;margin-bottom:5px}
+.dk-card-body{font-size:11px;color:#a0b4d0;line-height:1.65}
+.dk-badge{display:inline-block;background:#1e3a5f;color:#60a5fa;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-bottom:4px}
+
+/* 일반 요소 */
+.slide-title{font-size:17px;font-weight:700;color:#1a1a1a;margin-bottom:11px;border-bottom:2px solid #e8e4f8;padding-bottom:6px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.four-col{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+
+.box{background:#f8f7ff;border:1px solid #d0c8f0;border-radius:7px;padding:10px 12px}
+.box-title{font-size:12px;font-weight:700;color:#3d2f8f;margin-bottom:5px}
+.box-body{font-size:11px;color:#333;line-height:1.65}
+
+/* 밝은 파란 카드 (추가내용1 스타일) */
+.blue-card{background:#EBF4FF;border:1px solid #c0d8f4;border-radius:10px;padding:12px 14px}
+.blue-card-title{font-size:12px;font-weight:700;color:#1a5fa5;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.blue-card-body{font-size:11px;color:#2a4a70;line-height:1.65}
+
+.hl-box{background:#fff8e1;border-left:4px solid #FFC107;padding:9px 12px;border-radius:0 6px 6px 0;font-size:11px;color:#4a3500;line-height:1.65;margin:6px 0}
+.info-box{background:#E6F1FB;border-left:4px solid #378ADD;padding:9px 12px;border-radius:0 6px 6px 0;font-size:11px;color:#0a2a4a;line-height:1.65;margin:6px 0}
+.ok-box{background:#EAF3DE;border-left:4px solid #4CAF50;padding:9px 12px;border-radius:0 6px 6px 0;font-size:11px;color:#1a3a10;line-height:1.65;margin:6px 0}
+.purple-box{background:#f8f7ff;border-left:4px solid #3d2f8f;padding:9px 12px;border-radius:0 6px 6px 0;font-size:11px;color:#1a1040;line-height:1.65;margin:6px 0}
+
+.bullet{list-style:none;padding:0}
+.bullet li{font-size:11px;color:#222;padding:3px 0;line-height:1.6;display:flex;gap:7px}
+.bullet li::before{content:'▸';color:#3d2f8f;flex-shrink:0;font-size:10px;margin-top:2px}
+.bullet.dk li{color:#a0b4d0}
+.bullet.dk li::before{color:#60a5fa}
+
+.formula{background:#f0f4ff;border:1px solid #c0d4f4;border-radius:6px;padding:7px 10px;font-family:'Courier New',monospace;font-size:11px;color:#185FA5;line-height:1.8;margin:5px 0}
+.formula strong{color:#1D9E75;font-size:13px}
+
+pre.code{background:#1e1e2e;color:#cdd6f4;padding:9px 11px;border-radius:6px;font-size:10px;line-height:1.7;overflow:hidden;tab-size:2;white-space:pre}
+.kw{color:#89b4fa}.fn{color:#a6e3a1}.cm{color:#6c7086}.num{color:#fab387}.st{color:#a6e3a1}
+
+.pipe{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:7px 0}
+.pipe-box{border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;text-align:center}
+.pipe-arrow{color:#aaa;font-size:13px}
+
+.cmp-table{width:100%;border-collapse:collapse;font-size:11px}
+.cmp-table th{background:#3d2f8f;color:#fff;padding:6px 8px;text-align:center;font-weight:600}
+.cmp-table td{padding:5px 8px;border-bottom:1px solid #eee;color:#333;text-align:center}
+.cmp-table tr:nth-child(even) td{background:#f8f7ff}
+.cmp-table .rl{text-align:left;font-weight:600;color:#3d2f8f;background:#f8f7ff!important}
+
+/* 다크 테이블 */
+.dk-table{width:100%;border-collapse:collapse;font-size:11px}
+.dk-table th{background:#1a3a6f;color:#90c4ff;padding:7px 10px;text-align:center;font-weight:600}
+.dk-table td{padding:6px 10px;border-bottom:1px solid #1e2d4a;color:#c0d4e8;text-align:center}
+.dk-table tr:nth-child(even) td{background:#131e33}
+.dk-table .dl{text-align:left;font-weight:600;color:#60a5fa}
+
+.gate-row{display:flex;gap:7px}
+.gate{flex:1;border-radius:6px;padding:8px 10px;border:1px solid}
+.gate-name{font-size:11px;font-weight:700;margin-bottom:3px}
+.gate-desc{font-size:10px;line-height:1.5}
+
+.chip{background:#f5f5f0;border-radius:6px;padding:6px 10px}
+.chip .cl{font-size:10px;color:#999;margin-bottom:1px}
+.chip .cv{font-size:13px;font-weight:700}
+
+.lab-card{background:#1e1e2e;border-radius:7px;padding:9px 12px;margin-top:6px}
+.lab-title{font-size:11px;font-weight:700;color:#a6e3a1;margin-bottom:3px}
+.lab-desc{font-size:10px;color:#cdd6f4;line-height:1.6}
+.lab-link{font-size:10px;color:#89b4fa;margin-top:2px}
+
+/* 역사 타임라인 */
+.timeline-h{display:flex;gap:0;position:relative;margin:10px 0}
+.tl-h-item{flex:1;text-align:center;padding:8px 4px;border-top:3px solid #d0c8f0;position:relative}
+.tl-h-item::before{content:'';position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#3d2f8f;border:2px solid #fff}
+.tl-h-year{font-size:10px;font-weight:700;color:#3d2f8f;margin-bottom:3px}
+.tl-h-label{font-size:10px;color:#555;line-height:1.4}
+
+/* 네비 */
+.nav{display:flex;align-items:center;gap:10px;margin-top:14px}
+.nav button{padding:7px 16px;border-radius:6px;border:1px solid #555;background:#3a3a3a;color:#fff;cursor:pointer;font-size:12px;font-family:inherit}
+.nav button:hover{background:#555}
+.nav button:disabled{opacity:.35;cursor:default}
+.nav-info{color:#ccc;font-size:12px;min-width:80px;text-align:center}
+.progress{display:flex;gap:3px;margin-top:8px;flex-wrap:wrap;justify-content:center;max-width:900px}
+.pdot{width:18px;height:4px;border-radius:2px;background:#555;cursor:pointer;transition:background .2s}
+.pdot.active{background:#6a4dbf}
+.pdot.done{background:#888}
+
+body.fs-mode{overflow:hidden;background:#000;padding:0}
+body.fs-mode .nav,
+body.fs-mode .progress{display:none}
+body.fs-mode .slide.active{
+  position:fixed;
+  left:50%;
+  top:50%;
+  margin:0;
+  transform:translate(-50%,-50%) scale(var(--fs-scale,1));
+  transform-origin:center center;
+  box-shadow:none;
+}
+</style>
+</head>
+<body>
+
+<!-- ① 표지 -->
+<div class="slide active" id="s1">
+  <div style="background:linear-gradient(135deg,#3d2f8f 0%,#6a4dbf 100%);flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:30px">
+    <div style="font-size:12px;color:#c8bfef;letter-spacing:.1em">2026.05.13 &nbsp;|&nbsp; 11주차</div>
+    <div style="font-size:32px;font-weight:800;color:#fff;line-height:1.3">인공지능과 기계학습</div>
+    <div style="font-size:16px;color:#c8bfef;margin-top:4px">합성곱 신경망 · 순환 신경망</div>
+    <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;justify-content:center">
+      <span style="background:rgba(255,255,255,.15);color:#fff;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700">CNN · Ch14</span>
+      <span style="background:rgba(255,255,255,.15);color:#fff;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700">RNN / LSTM · Ch15</span>
+      <span style="background:rgba(255,255,255,.15);color:#fff;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700">PyTorch 실습</span>
+    </div>
+    <div style="font-size:14px;color:#a89ed4;margin-top:14px">장우영</div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">1</div></div>
+</div>
+
+<!-- ② 전체 목차 -->
+<div class="slide" id="s2">
+  <div class="hd"><span class="hd-title">목 차</span></div>
+  <div class="body">
+    <div class="toc-grid">
+      <div class="toc-card">
+        <div class="toc-num">01</div>
+        <div class="toc-title">합성곱 신경망</div>
+        <ul class="toc-items">
+          <li>합성곱 신경망의 구성 요소</li>
+          <li>파이토치를 사용하여 심층 합성곱 신경망 구현</li>
+          <li>합성곱 신경망을 사용하여 웃는 얼굴 분류</li>
+          <li>요약</li>
+        </ul>
+      </div>
+      <div class="toc-card">
+        <div class="toc-num">02</div>
+        <div class="toc-title">순환 신경망</div>
+        <ul class="toc-items">
+          <li>순차 데이터 소개</li>
+          <li>시퀀스 모델링을 위한 RNN</li>
+          <li>파이토치로 시퀀스 모델링을 위한 RNN 구현</li>
+          <li>요약</li>
+        </ul>
+      </div>
+    </div>
+    <div style="margin-top:11px;display:flex;gap:8px;flex-wrap:wrap">
+      <div style="background:#f8f7ff;border:1px solid #d0c8f0;border-radius:6px;padding:7px 12px;font-size:11px;color:#3d2f8f"><strong>교재:</strong> 머신 러닝 교과서: 파이토치 편 · 14~15장</div>
+      <div style="background:#f8f7ff;border:1px solid #d0c8f0;border-radius:6px;padding:7px 12px;font-size:11px;color:#3d2f8f"><strong>코드:</strong> github.com/rickiepark/ml-with-pytorch · ch14, ch15</div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">2</div></div>
+</div>
+
+<!-- ③ 인공신경망 계보 — 배경지식 (추가내용2) -->
+<div class="slide dark" id="s3">
+  <div class="hd" style="background:linear-gradient(135deg,#0d1f4a 60%,#1a3a7a 100%)">
+    <span class="sec-badge" style="background:#1a3a6f;color:#60a5fa;border:1px solid #2a5aa0">배경 지식</span>
+    <span class="hd-title">인공신경망의 계보 — 기초에서 CNN·RNN까지</span>
+  </div>
+  <div class="body">
+    <div class="four-col" style="margin-bottom:10px">
+      <div class="dk-card">
+        <div class="dk-badge">단일층 (SLP)</div>
+        <div class="dk-card-title">선형 분리</div>
+        <div class="dk-card-body">입력·출력층만 존재. AND/OR만 해결. XOR 불가 → AI 암흑기</div>
+      </div>
+      <div class="dk-card">
+        <div class="dk-badge">다층 (MLP)</div>
+        <div class="dk-card-title">비선형 해결</div>
+        <div class="dk-card-body">은닉층 추가. 오차 역전파(Backprop)로 XOR 해결, 현대 학습의 기틀</div>
+      </div>
+      <div class="dk-card">
+        <div class="dk-badge">심층 (DNN)</div>
+        <div class="dk-card-title">딥러닝 실체</div>
+        <div class="dk-card-body">수십~수백 은닉층. GPU·빅데이터로 성능 폭발. 추상적 특징 계층 학습</div>
+      </div>
+      <div class="dk-card" style="border-color:#3a5a90">
+        <div class="dk-badge" style="background:#1a3a70;color:#90d4ff">CNN / RNN</div>
+        <div class="dk-card-title" style="color:#90d4ff">특화 구조</div>
+        <div class="dk-card-body">CNN: 이미지·공간 / RNN: 시퀀스·시간 → <strong style="color:#60a5fa">오늘 강의 주제</strong></div>
+      </div>
+    </div>
+    <table class="dk-table">
+      <tr><th>구분</th><th>층의 깊이</th><th>주요 데이터</th><th>특징적 키워드</th></tr>
+      <tr><td class="dl">단일층 (SLP)</td><td>1개 (은닉층 없음)</td><td>단순 수치</td><td>선형 분리, 기초 모델</td></tr>
+      <tr><td class="dl">다층 (MLP)</td><td>2개 이상</td><td>일반 데이터</td><td>비선형 해결, 오차 역전파</td></tr>
+      <tr><td class="dl">심층 (DNN)</td><td>아주 깊음</td><td>빅데이터</td><td>딥러닝, 고도의 추상화</td></tr>
+      <tr><td class="dl" style="color:#90d4ff">합성곱 (CNN)</td><td>특수 구조</td><td>이미지 / 영상</td><td>특징 추출, 공간 정보</td></tr>
+      <tr><td class="dl" style="color:#90d4ff">순환 (RNN)</td><td>순환 구조</td><td>텍스트 / 음성</td><td>시퀀스 데이터, 기억(Context)</td></tr>
+    </table>
+  </div>
+  <div class="footer" style="background:#0f1729;border-top-color:#378ADD"><div class="dots"><span style="background:#378ADD"></span><span style="background:#378ADD;opacity:.45"></span><span style="background:#378ADD"></span><span style="background:#378ADD;opacity:.45"></span><span style="background:#378ADD"></span><span style="background:#378ADD;opacity:.45"></span><span style="background:#378ADD"></span><span style="background:#378ADD;opacity:.45"></span><span style="background:#378ADD"></span></div><div class="pg" style="color:#60a5fa">3</div></div>
+</div>
+
+<!-- ④ CNN 섹션 목차 -->
+<div class="slide" id="s4">
+  <div class="hd"><span class="sec-badge">합성곱 신경망</span><span class="hd-title">1. 합성곱 신경망</span></div>
+  <div class="body">
+    <div class="sec-intro">
+      <div class="sec-intro-title">합성곱 신경망</div>
+      <ul class="sec-sub-list">
+        <li><span class="num">1-1</span>합성곱 신경망의 구성 요소</li>
+        <li><span class="num">1-2</span>파이토치를 사용하여 심층 합성곱 신경망 구현</li>
+        <li><span class="num">1-3</span>합성곱 신경망을 사용하여 웃는 얼굴 분류</li>
+        <li><span class="num">1-4</span>요약</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">4</div></div>
+</div>
+
+<!-- ⑤ CNN 핵심 개념 및 영감 (추가내용1 p.1) -->
+<div class="slide" id="s5">
+  <div class="hd"><span class="sec-badge">합성곱 신경망</span><span class="hd-title">합성곱 신경망의 구성 요소 — 핵심 개념 및 영감</span></div>
+  <div class="body">
+    <div class="blue-card" style="margin-bottom:11px">
+      <div class="blue-card-title">💡 핵심 개념 및 영감</div>
+      <div class="blue-card-body">뇌의 시각 피질이 사물을 인식하는 방식에서 영감을 얻은 딥러닝 모델 · 생물학적 구조를 모방하여 이미지 데이터의 공간적 정보를 효과적으로 처리</div>
+    </div>
+    <div class="two-col">
+      <div class="box" style="border-color:#b5d4f4;background:#f0f7ff">
+        <div class="box-title" style="color:#185FA5">역사적 배경 — 1959년, 허블 & 비셀</div>
+        <ul class="bullet">
+          <li>고양이 시각 피질 연구 → 특정 방향 선에 반응하는 뉴런 발견</li>
+          <li>계층적 구조를 통한 시각 인식 원리 규명</li>
+          <li>노벨 생리학·의학상 수상</li>
+        </ul>
+        <div style="margin-top:8px">
+          <div class="timeline-h">
+            <div class="tl-h-item"><div class="tl-h-year">1959</div><div class="tl-h-label">허블·비셀<br>시각피질 연구</div></div>
+            <div class="tl-h-item"><div class="tl-h-year">1989</div><div class="tl-h-label">LeCun<br>CNN 제안</div></div>
+            <div class="tl-h-item"><div class="tl-h-year">1998</div><div class="tl-h-label">LeNet-5<br>MNIST 적용</div></div>
+            <div class="tl-h-item"><div class="tl-h-year">2012</div><div class="tl-h-label">AlexNet<br>ImageNet 우승</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="box" style="border-color:#c0dd97;background:#f4fbea">
+        <div class="box-title" style="color:#27500A">계층적 학습 구조</div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-top:4px">
+          <div style="background:#fff;border:1px solid #97C459;border-radius:6px;padding:8px 10px">
+            <div style="font-size:11px;font-weight:700;color:#3B6D11;margin-bottom:3px">[저수준] 첫 번째 층</div>
+            <div style="font-size:11px;color:#444">모서리와 직선, 색상 대비 등 기본적인 기하학적 특징 감지</div>
+          </div>
+          <div style="text-align:center;color:#aaa;font-size:12px">↓ 조합</div>
+          <div style="background:#fff;border:1px solid #1D9E75;border-radius:6px;padding:8px 10px">
+            <div style="font-size:11px;font-weight:700;color:#085041;margin-bottom:3px">[고수준] 뒤쪽 층</div>
+            <div style="font-size:11px;color:#444">감지된 특징들을 조합하여 복잡한 모양, 질감 및 사물 패턴 추출</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">5</div></div>
+</div>
+
+<!-- ⑥ CNN 특성 계층 학습 (추가내용1 p.2) -->
+<div class="slide" id="s6">
+  <div class="hd"><span class="sec-badge">합성곱 신경망</span><span class="hd-title">합성곱 신경망의 구성 요소 — CNN과 특성 계층 학습</span></div>
+  <div class="body">
+    <div class="blue-card" style="margin-bottom:11px">
+      <div class="blue-card-title">✦ 자동 특성 추출기</div>
+      <div class="blue-card-body">원본 데이터에서 유용한 특성을 자동 학습하며, 수동 설계 없이 성능을 극대화함</div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="box-title" style="margin-bottom:7px">계층적 특성 구성</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="background:#E6F1FB;border:1px solid #85B7EB;border-radius:5px;padding:6px 10px;font-size:11px;font-weight:700;color:#185FA5;min-width:80px;text-align:center">저수준 특성</div>
+            <div style="font-size:11px;color:#555">모서리, 선, 동그라미 추출 (앞쪽 층)</div>
+          </div>
+          <div style="text-align:left;padding-left:40px;color:#aaa;font-size:11px">↓</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="background:#EAF3DE;border:1px solid #97C459;border-radius:5px;padding:6px 10px;font-size:11px;font-weight:700;color:#27500A;min-width:80px;text-align:center">고수준 특성</div>
+            <div style="font-size:11px;color:#555">건물, 자동차 등 복잡한 형상 (뒤쪽 층)</div>
+          </div>
+          <div style="text-align:left;padding-left:40px;color:#aaa;font-size:11px">↓</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="background:#f8f7ff;border:1px solid #d0c8f0;border-radius:5px;padding:6px 10px;font-size:11px;font-weight:700;color:#3d2f8f;min-width:80px;text-align:center">최종 예측</div>
+            <div style="font-size:11px;color:#555">완전 연결층을 통한 타깃값/레이블 판단</div>
+          </div>
+        </div>
+        <div class="info-box" style="margin-top:10px"><strong>국부 수용장과 파라미터 공유:</strong> 희소 연결(Sparse Connectivity)과 파라미터 공유를 통해 연산 효율을 높이고 공간적 구조를 보존</div>
+      </div>
+      <div>
+        <div class="box-title" style="margin-bottom:7px">핵심 구성 요소 4가지</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="box" style="padding:7px 10px">
+            <div class="box-title">국부 수용장 (Local Receptive Field)</div>
+            <div class="box-body">이미지의 작은 영역에만 연결되어 국부적인 특징을 감지</div>
+          </div>
+          <div class="box" style="padding:7px 10px">
+            <div class="box-title">희소 연결 (Sparse Connectivity)</div>
+            <div class="box-body">모든 뉴런이 연결되지 않고 특정 영역에만 집중 → 연산 효율 향상</div>
+          </div>
+          <div class="box" style="padding:7px 10px">
+            <div class="box-title">파라미터 공유 (Parameter Sharing)</div>
+            <div class="box-body">동일한 필터를 이미지 전체에 슬라이딩하여 가중치 재사용</div>
+          </div>
+          <div class="box" style="padding:7px 10px">
+            <div class="box-title">풀링 층 (Pooling Layer)</div>
+            <div class="box-body">특성 맵의 크기를 줄여 해상도를 낮추고 계산량 감소</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">6</div></div>
+</div>
+
+<!-- ⑦ 이산 합성곱 & 패딩 (추가내용1 p.3~5) -->
+<div class="slide" id="s7">
+  <div class="hd"><span class="sec-badge">합성곱 신경망</span><span class="hd-title">합성곱 신경망의 구성 요소 — 이산 합성곱 & 제로 패딩</span></div>
+  <div class="body">
+    <div class="blue-card" style="margin-bottom:10px">
+      <div class="blue-card-title">핵심 메커니즘: 효율적인 공간 정보 처리</div>
+      <div class="blue-card-body">입력 이미지의 국부적인 정보를 추출하여 공간적 구조를 보존하면서 파라미터를 획기적으로 줄입니다.</div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="box-title" style="margin-bottom:7px">제로 패딩 (Zero Padding)</div>
+        <div class="box-body" style="font-size:11px;margin-bottom:8px">입력 데이터의 외곽에 0을 추가하여 출력 크기를 조절하고 가장자리 정보를 보존합니다.</div>
+        <!-- 패딩 시각화 -->
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start">
+          <div style="font-size:10px;color:#888;margin-bottom:2px">Original x:</div>
+          <div style="display:flex;gap:2px">
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">3</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">2</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">1</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">7</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">1</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">2</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">5</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">4</div>
+          </div>
+          <div style="font-size:10px;color:#888">↓ Padding with p=2</div>
+          <div style="display:flex;gap:2px">
+            <div style="width:26px;height:26px;border:1px dashed #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;background:#f0f0f0;color:#bbb">0</div>
+            <div style="width:26px;height:26px;border:1px dashed #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;background:#f0f0f0;color:#bbb">0</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">3</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">2</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">1</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">7</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">1</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">2</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">5</div>
+            <div style="width:26px;height:26px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:#E6F1FB;color:#185FA5">4</div>
+            <div style="width:26px;height:26px;border:1px dashed #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;background:#f0f0f0;color:#bbb">0</div>
+            <div style="width:26px;height:26px;border:1px dashed #aaa;display:flex;align-items:center;justify-content:center;font-size:11px;background:#f0f0f0;color:#bbb">0</div>
+          </div>
+        </div>
+        <div class="formula" style="margin-top:8px">입력 크기 확장: (n + 2p) = (8 + 2×2) = <strong>12</strong></div>
+      </div>
+      <div>
+        <div class="box-title" style="margin-bottom:7px">이산 합성곱 계산 단계</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <div style="background:#3d2f8f;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0;margin-top:1px">1</div>
+            <div style="font-size:11px;color:#333"><strong>필터 배치:</strong> 입력 데이터의 좌상단(또는 시작점)에 필터를 위치시킵니다.</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <div style="background:#3d2f8f;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0;margin-top:1px">2</div>
+            <div style="font-size:11px;color:#333"><strong>원소별 곱셈:</strong> 겹치는 영역의 대응하는 원소끼리 모두 곱합니다.</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <div style="background:#3d2f8f;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0;margin-top:1px">3</div>
+            <div style="font-size:11px;color:#333"><strong>총합 계산:</strong> 곱셈 결과들을 모두 더하여 하나의 스칼라 값을 산출합니다.</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <div style="background:#3d2f8f;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0;margin-top:1px">4</div>
+            <div style="font-size:11px;color:#333"><strong>슬라이딩:</strong> 지정된 스트라이드(Stride)만큼 이동하여 반복합니다.</div>
+          </div>
+        </div>
+        <div class="formula" style="margin-top:10px">출력 크기 = ⌊(N − K + 2P) / S⌋ + 1</div>
+        <div class="lab-card" style="margin-top:8px">
+          <div class="lab-title">실습 파일 참조</div>
+          <div class="lab-desc">스트라이드·패딩 인터랙티브 시뮬레이터</div>
+          <div class="lab-link">📁 conv_vanilla.html</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">7</div></div>
+</div>
+
+<!-- ⑧ 인간 시각과 CNN (추가내용1 p.6) -->
+<div class="slide" id="s8">
+  <div class="hd"><span class="sec-badge">합성곱 신경망</span><span class="hd-title">합성곱 신경망의 구성 요소 — 인간의 시각 시스템과 CNN의 공통 철학</span></div>
+  <div class="body">
+    <div class="blue-card" style="margin-bottom:11px">
+      <div class="blue-card-title">👁 우리의 눈은 이미지를 "전체"로 한 번에 처리하지 않습니다.</div>
+      <div class="blue-card-body">인간의 뇌와 CNN은 국부적인 영역에서 특징을 찾아내어 결합하는 동일한 메커니즘을 공유합니다.</div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="box-title" style="margin-bottom:8px">인간 시각의 정보 처리 방식</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="box" style="border-color:#b5d4f4;background:#f0f7ff;padding:9px 12px">
+            <div class="box-title" style="color:#185FA5">망막 (Retina)</div>
+            <div class="box-body">작은 영역 단위로 빛에 반응하여 정보를 수집</div>
+          </div>
+          <div class="box" style="border-color:#b5d4f4;background:#f0f7ff;padding:9px 12px">
+            <div class="box-title" style="color:#185FA5">시각 피질 (V1)</div>
+            <div class="box-body">수집된 정보에서 선(Edge) 및 방향(Direction), 밝기 변화, 기하학적 패턴 감지</div>
+          </div>
+        </div>
+        <div class="purple-box" style="margin-top:10px">"전체 이미지를 한 번에 계산하지 않고, <strong>작은 영역(Local Region)을 이동하며 특징을 추출하는 방식</strong>"</div>
+      </div>
+      <div>
+        <div class="box-title" style="margin-bottom:8px">CNN과의 대응 관계</div>
+        <table class="cmp-table">
+          <tr><th>인간 시각</th><th>CNN 구성 요소</th></tr>
+          <tr><td class="rl">망막 (Retina)</td><td>입력 이미지 픽셀</td></tr>
+          <tr><td class="rl">국부 수용장</td><td>합성곱 필터 (Kernel)</td></tr>
+          <tr><td class="rl">특징 감지 뉴런</td><td>특성 맵 (Feature Map)</td></tr>
+          <tr><td class="rl">시각 피질 V1</td><td>첫 번째 합성곱 층</td></tr>
+          <tr><td class="rl">고차 피질 영역</td><td>깊은 합성곱 층</td></tr>
+          <tr><td class="rl">사물 인식</td><td>완전 연결층 + Softmax</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">8</div></div>
+</div>
+
+<!-- ⑨ CNN 구성 요소 — MLP vs CNN, 파이프라인 -->
+<div class="slide" id="s9">
+  <div class="hd"><span class="sec-badge">합성곱 신경망</span><span class="hd-title">합성곱 신경망의 구성 요소 — MLP 한계와 CNN의 해법</span></div>
+  <div class="body">
+    <div class="two-col">
+      <div>
+        <div class="box" style="border-color:#f5c4b3;background:#fff5f0">
+          <div class="box-title" style="color:#993C1D">MLP의 한계</div>
+          <ul class="bullet">
+            <li>28×28 이미지 → 784 입력, FC 연결 시 파라미터 폭발</li>
+            <li>공간적 위치 정보 소실 (평탄화 시)</li>
+            <li>이동 불변성 부재 — 위치 바뀌면 재학습 필요</li>
+          </ul>
+          <div class="formula">784 × 256 = <strong>200,704</strong> params (1개 층)</div>
+        </div>
+      </div>
+      <div>
+        <div class="box" style="border-color:#b5d4f4;background:#f0f7ff">
+          <div class="box-title" style="color:#185FA5">CNN의 해법</div>
+          <ul class="bullet">
+            <li>필터(커널)로 지역 패턴 추출 — 파라미터 공유</li>
+            <li>공간 구조 유지: 이미지 전체를 슬라이딩 처리</li>
+            <li>계층적 특징 학습 (엣지 → 모서리 → 객체)</li>
+          </ul>
+          <div class="formula">3×3×1×32 = <strong>288</strong> params (약 700배 절약)</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <div class="box-title" style="margin-bottom:6px">Conv → BN → ReLU → Pool 파이프라인</div>
+      <div class="pipe">
+        <div class="pipe-box" style="background:#E6F1FB;color:#185FA5;border:1px solid #85B7EB">입력 이미지<br><span style="font-size:9px;font-weight:400">1×28×28</span></div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-box" style="background:#E6F1FB;color:#185FA5;border:2px solid #378ADD">합성곱<br><span style="font-size:9px;font-weight:400">Conv2d</span></div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-box" style="background:#f0ebff;color:#3d2f8f;border:1px solid #9f8fe0">배치정규화<br><span style="font-size:9px;font-weight:400">BatchNorm2d</span></div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-box" style="background:#FFF3CD;color:#854F0B;border:1px solid #F59E0B">ReLU</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-box" style="background:#EAF3DE;color:#27500A;border:1px solid #639922">맥스 풀링<br><span style="font-size:9px;font-weight:400">MaxPool2d</span></div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-box" style="background:#f8f7ff;color:#555;border:1px solid #d0c8f0">FC<br><span style="font-size:9px;font-weight:400">분류</span></div>
+      </div>
+    </div>
+    <div class="lab-card">
+      <div class="lab-title">실습 파일 참조</div>
+      <div class="lab-desc">MLP vs CNN 파라미터 공유 실습 (바닐라 HTML) — 파라미터 계산기, 슬라이딩 실습, 가중치 공유 확인, 코드 생성기, 퀴즈</div>
+      <div class="lab-link">📁 mlp_vs_cnn_vanilla.html</div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">9</div></div>
+</div>
+
+<!-- 실습A: 합성곱 연산 인터랙티브 -->
+<div class="slide" id="sA">
+  <div class="hd"><span class="sec-badge" style="background:#FFF3CD;color:#854F0B;border:1px solid #F59E0B">실습</span><span class="hd-title">합성곱 연산 실습 — 스트라이드 & 패딩 인터랙티브 시뮬레이터</span></div>
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+    <iframe id="iframe-conv" style="flex:1;border:none;width:100%" src="conv_vanilla.html" title="합성곱 연산 실습"></iframe>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">실습①</div></div>
+</div>
+
+<!-- ⑩ 심층 CNN 구현 -->
+<div class="slide" id="s10">
+  <div class="hd"><span class="sec-badge">합성곱 신경망</span><span class="hd-title">파이토치를 사용하여 심층 합성곱 신경망 구현</span></div>
+  <div class="body" style="padding:12px 22px 24px">
+    <div class="two-col" style="gap:10px">
+      <div>
+        <div class="box-title" style="margin-bottom:4px;font-size:11px">MNIST 분류 — ConvNet</div>
+        <pre class="code" style="font-size:9px;line-height:1.5;padding:8px 10px"><span class="kw">class</span> ConvNet(nn.Module):
+  <span class="kw">def</span> __init__(self):
+    super().__init__()
+    <span class="cm"># 블록1: 28×28 → 14×14</span>
+    self.conv1 = nn.<span class="fn">Conv2d</span>(<span class="num">1</span>,<span class="num">32</span>,<span class="num">3</span>,padding=<span class="num">1</span>)
+    self.bn1   = nn.<span class="fn">BatchNorm2d</span>(<span class="num">32</span>)
+    self.pool  = nn.<span class="fn">MaxPool2d</span>(<span class="num">2</span>,<span class="num">2</span>)
+    <span class="cm"># 블록2: 14×14 → 7×7</span>
+    self.conv2 = nn.<span class="fn">Conv2d</span>(<span class="num">32</span>,<span class="num">64</span>,<span class="num">3</span>,padding=<span class="num">1</span>)
+    self.bn2   = nn.<span class="fn">BatchNorm2d</span>(<span class="num">64</span>)
+    <span class="cm"># 분류 헤드</span>
+    self.fc1   = nn.<span class="fn">Linear</span>(<span class="num">64*7*7</span>,<span class="num">128</span>)
+    self.drop  = nn.<span class="fn">Dropout</span>(<span class="num">0.5</span>)
+    self.fc2   = nn.<span class="fn">Linear</span>(<span class="num">128</span>,<span class="num">10</span>)
+  <span class="kw">def</span> forward(self, x):
+    x = self.pool(F.relu(self.bn1(self.conv1(x))))
+    x = self.pool(F.relu(self.bn2(self.conv2(x))))
+    x = x.view(<span class="num">-1</span>, <span class="num">64*7*7</span>)
+    <span class="kw">return</span> self.fc2(self.drop(F.relu(self.fc1(x))))</pre>
+      </div>
+      <div>
+        <div class="box-title" style="margin-bottom:4px;font-size:11px">특성 맵 크기 변화</div>
+        <div style="display:flex;flex-direction:column;gap:3px;font-size:10px;line-height:1.45">
+          <div style="display:flex;align-items:center;gap:5px"><div style="background:#E6F1FB;border:1px solid #85B7EB;border-radius:4px;padding:3px 7px;color:#185FA5;font-weight:700">1×28×28</div><span style="color:#aaa">→ Conv1+BN+ReLU →</span><div style="background:#E6F1FB;border:1px solid #378ADD;border-radius:4px;padding:3px 7px;color:#185FA5;font-weight:700">32×28×28</div></div>
+          <div style="padding-left:16px;color:#aaa">→ Pool → <span style="color:#27500A;font-weight:700">32×14×14</span></div>
+          <div style="padding-left:16px;color:#aaa">→ Conv2+BN+ReLU → <span style="color:#185FA5;font-weight:700">64×14×14</span></div>
+          <div style="padding-left:16px;color:#aaa">→ Pool → <span style="color:#27500A;font-weight:700">64×7×7</span></div>
+          <div style="padding-left:16px;color:#aaa">→ Flatten → FC → <span style="color:#3d2f8f;font-weight:700">10 classes</span></div>
+        </div>
+        <div class="info-box" style="margin-top:6px;font-size:10px;line-height:1.5">파라미터 공유: 3×3 필터 288개 가중치를 이미지 전체에서 재사용 → MLP 200,704개 대비 <strong>약 700배 절약</strong></div>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+          <div class="chip" style="padding:6px 8px;min-width:84px"><div class="cl">MNIST 정확도</div><div class="cv" style="color:#1D9E75;font-size:12px">~99%</div></div>
+          <div class="chip" style="padding:6px 8px;min-width:84px"><div class="cl">CelebA 정확도</div><div class="cv" style="color:#185FA5;font-size:12px">~91%</div></div>
+          <div class="chip" style="padding:6px 8px;min-width:84px"><div class="cl">파라미터 절감</div><div class="cv" style="color:#3d2f8f;font-size:12px">700×</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">10</div></div>
+</div>
+
+<!-- 실습B: MLP vs CNN 파라미터 공유 -->
+<div class="slide" id="sB">
+  <div class="hd"><span class="sec-badge" style="background:#FFF3CD;color:#854F0B;border:1px solid #F59E0B">실습</span><span class="hd-title">파라미터 공유 실습 — MLP vs CNN 비교 (5탭)</span></div>
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+    <iframe id="iframe-mlp" style="flex:1;border:none;width:100%" src="mlp_vs_cnn_vanilla.html" title="파라미터 공유 실습"></iframe>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">실습②</div></div>
+</div>
+
+<!-- ⑪ 웃는 얼굴 분류 1/3 -->
+<div class="slide" id="s11">
+  <div class="hd"><span class="sec-badge">합성곱 신경망</span><span class="hd-title">합성곱 신경망을 사용하여 웃는 얼굴 분류 1/3</span></div>
+  <div class="body">
+    <div class="slide-title">CelebA 데이터셋 소개 및 전처리</div>
+    <div class="two-col">
+      <div>
+        <div class="box-title" style="margin-bottom:6px">CelebA 데이터셋</div>
+        <ul class="bullet">
+          <li>대규모 유명인 얼굴 이미지 데이터셋</li>
+          <li>훈련 162,770장 / 검증 19,867장 / 테스트 19,962장</li>
+          <li>이진 분류: 웃는 얼굴(1) vs 무표정(0)</li>
+          <li>속성(Attribute) 레이블 40개 포함</li>
+        </ul>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <div class="chip"><div class="cl">훈련셋</div><div class="cv" style="color:#185FA5;font-size:12px">162,770</div></div>
+          <div class="chip"><div class="cl">검증셋</div><div class="cv" style="color:#27500A;font-size:12px">19,867</div></div>
+          <div class="chip"><div class="cl">테스트셋</div><div class="cv" style="color:#3d2f8f;font-size:12px">19,962</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="box-title" style="margin-bottom:5px">데이터 전처리 코드</div>
+        <pre class="code">transform = transforms.<span class="fn">Compose</span>([
+  <span class="cm"># 데이터 증강 (훈련 시)</span>
+  transforms.<span class="fn">RandomHorizontalFlip</span>(),
+  <span class="cm"># 178×178 중앙 크롭</span>
+  transforms.<span class="fn">CenterCrop</span>(<span class="num">178</span>),
+  <span class="cm"># 128×128으로 리사이즈</span>
+  transforms.<span class="fn">Resize</span>(<span class="num">128</span>),
+  transforms.<span class="fn">ToTensor</span>(),
+  <span class="cm"># [-1, 1] 정규화</span>
+  transforms.<span class="fn">Normalize</span>(
+    [<span class="num">0.5</span>,<span class="num">0.5</span>,<span class="num">0.5</span>],
+    [<span class="num">0.5</span>,<span class="num">0.5</span>,<span class="num">0.5</span>])
+])</pre>
+        <div class="hl-box">데이터 증강 (RandomHorizontalFlip): 이미지를 무작위로 좌우 반전하여 훈련 데이터를 다양하게 확장<br>→ 모델의 과적합(overfitting)을 방지하고 새로운 데이터에 대한 일반화 성능 향상</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">11</div></div>
+</div>
+
+<!-- ⑫ 웃는 얼굴 분류 2/3 -->
+<div class="slide" id="s12">
+  <div class="hd"><span class="sec-badge">합성곱 신경망</span><span class="hd-title">합성곱 신경망을 사용하여 웃는 얼굴 분류 2/3</span></div>
+  <div class="body">
+    <div class="slide-title">모델 구성 및 전이 학습</div>
+    <div class="two-col">
+      <div>
+        <div class="box-title" style="margin-bottom:5px">심층 CNN 모델</div>
+        <pre class="code"><span class="kw">class</span> SmileCNN(nn.Module):
+  <span class="kw">def</span> __init__(self):
+    super().__init__()
+    self.features = nn.<span class="fn">Sequential</span>(
+      nn.<span class="fn">Conv2d</span>(<span class="num">3</span>,<span class="num">32</span>,<span class="num">3</span>,padding=<span class="num">1</span>),
+      nn.<span class="fn">BatchNorm2d</span>(<span class="num">32</span>),
+      nn.<span class="fn">ReLU</span>(),
+      nn.<span class="fn">MaxPool2d</span>(<span class="num">2</span>),
+      nn.<span class="fn">Conv2d</span>(<span class="num">32</span>,<span class="num">64</span>,<span class="num">3</span>,padding=<span class="num">1</span>),
+      nn.<span class="fn">BatchNorm2d</span>(<span class="num">64</span>),
+      nn.<span class="fn">ReLU</span>(),
+      nn.<span class="fn">MaxPool2d</span>(<span class="num">2</span>),
+    )
+    self.fc = nn.<span class="fn">Linear</span>(<span class="num">64*32*32</span>, <span class="num">2</span>)</pre>
+      </div>
+      <div>
+        <div class="box-title" style="margin-bottom:5px">ResNet 전이 학습</div>
+        <pre class="code"><span class="cm"># ImageNet 사전 훈련 ResNet 활용</span>
+model = models.<span class="fn">resnet18</span>(pretrained=<span class="kw">True</span>)
+<span class="cm"># Feature Extractor: 가중치 동결</span>
+<span class="kw">for</span> p <span class="kw">in</span> model.parameters():
+    p.requires_grad = <span class="kw">False</span>
+<span class="cm"># 마지막 FC층만 교체 (이진 분류)</span>
+model.fc = nn.<span class="fn">Linear</span>(<span class="num">512</span>, <span class="num">2</span>)
+criterion = nn.<span class="fn">CrossEntropyLoss</span>()
+optimizer = optim.<span class="fn">Adam</span>(
+    model.fc.parameters(), lr=<span class="num">0.001</span>)</pre>
+        <div class="info-box">ResNet 스킵 커넥션: 출력 = F(x) + x → 기울기 최소 1 보장, 기울기 소실 해결. ImageNet 사전 훈련으로 적은 데이터로도 높은 성능.</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">12</div></div>
+</div>
+
+<!-- ⑬ 웃는 얼굴 분류 3/3 -->
+<div class="slide" id="s13">
+  <div class="hd"><span class="sec-badge">합성곱 신경망</span><span class="hd-title">합성곱 신경망을 사용하여 웃는 얼굴 분류 3/3</span></div>
+  <div class="body">
+    <div class="slide-title">훈련 루프 및 결과</div>
+    <div class="two-col">
+      <div>
+        <div class="box-title" style="margin-bottom:5px">훈련 루프</div>
+        <pre class="code"><span class="kw">for</span> epoch <span class="kw">in</span> range(num_epochs):
+  model.train()
+  <span class="kw">for</span> imgs, labels <span class="kw">in</span> train_loader:
+    optimizer.zero_grad()
+    outputs = model(imgs)
+    loss = criterion(outputs, labels)
+    loss.backward()
+    optimizer.step()
+  model.eval()
+  <span class="kw">with</span> torch.no_grad():
+    correct = (model(val_imgs)
+      .argmax(<span class="num">1</span>) == val_labels).sum()
+    acc = correct / len(val_labels)
+  print(<span class="st">f'Epoch {epoch}: acc={acc:.4f}'</span>)</pre>
+      </div>
+      <div>
+        <div class="box-title" style="margin-bottom:8px">실험 결과 비교</div>
+        <table class="cmp-table">
+          <tr><th>모델</th><th>검증 정확도</th><th>훈련 시간</th></tr>
+          <tr><td class="rl">CNN (처음부터)</td><td>~85%</td><td>길다</td></tr>
+          <tr><td class="rl">ResNet18 (전이학습)</td><td>~91%</td><td>짧다</td></tr>
+        </table>
+        <div class="ok-box" style="margin-top:8px">전이 학습이 처음부터 훈련하는 것보다 정확도↑, 훈련 시간↓ 동시 달성</div>
+        <div class="box" style="margin-top:8px">
+          <div class="box-title">ResNet 스킵 커넥션 원리</div>
+          <div class="box-body">출력 = F(x) + x &nbsp;→&nbsp; 기울기 최소 1 보장, 100층 이상 학습 가능</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">13</div></div>
+</div>
+
+<!-- ⑭ CNN 요약 -->
+<div class="slide" id="s14">
+  <div class="hd"><span class="sec-badge">합성곱 신경망</span><span class="hd-title">요약</span></div>
+  <div class="body">
+    <div class="three-col">
+      <div class="box" style="border-color:#b5d4f4;background:#f0f7ff">
+        <div class="box-title" style="color:#185FA5">합성곱 연산</div>
+        <ul class="bullet">
+          <li>필터가 이미지를 슬라이딩하며 특징 맵 생성</li>
+          <li>파라미터 공유 → MLP 대비 극적 절감</li>
+          <li>출력 크기: ⌊(N−K+2P)/S⌋+1</li>
+          <li>인간 시각 피질의 계층적 처리 모방</li>
+        </ul>
+      </div>
+      <div class="box" style="border-color:#d0c8f0;background:#f8f7ff">
+        <div class="box-title" style="color:#3d2f8f">BN · 풀링 · 드롭아웃</div>
+        <ul class="bullet">
+          <li>BN: 학습 안정화, 높은 학습률 허용</li>
+          <li>Max Pooling: 크기 축소, 위치 불변성</li>
+          <li>Dropout: 과적합 방지</li>
+          <li>희소 연결로 연산 효율 극대화</li>
+        </ul>
+      </div>
+      <div class="box" style="border-color:#c0dd97;background:#f4fbea">
+        <div class="box-title" style="color:#27500A">ResNet & 전이 학습</div>
+        <ul class="bullet">
+          <li>스킵 커넥션으로 기울기 소실 해결</li>
+          <li>ImageNet 사전 훈련 모델 재활용</li>
+          <li>적은 데이터로 높은 성능 달성</li>
+        </ul>
+      </div>
+    </div>
+    <div style="margin-top:10px;background:#f8f7ff;border:1.5px solid #d0c8f0;border-radius:8px;padding:10px 14px">
+      <div style="font-size:11px;font-weight:700;color:#3d2f8f;margin-bottom:6px">실습 파일 정리</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="background:#1e1e2e;border-radius:6px;padding:7px 11px;flex:1;min-width:180px">
+          <div style="font-size:10px;color:#a6e3a1;font-weight:700;margin-bottom:2px">📁 합성곱 연산 실습</div>
+          <div style="font-size:9px;color:#cdd6f4">conv_vanilla.html</div>
+        </div>
+        <div style="background:#1e1e2e;border-radius:6px;padding:7px 11px;flex:1;min-width:180px">
+          <div style="font-size:10px;color:#a6e3a1;font-weight:700;margin-bottom:2px">📁 파라미터 공유 실습</div>
+          <div style="font-size:9px;color:#cdd6f4">mlp_vs_cnn_vanilla.html</div>
+        </div>
+        <div style="background:#1e1e2e;border-radius:6px;padding:7px 11px;flex:1;min-width:160px">
+          <div style="font-size:10px;color:#89b4fa;font-weight:700;margin-bottom:2px">🔗 코드 저장소</div>
+          <div style="font-size:9px;color:#cdd6f4">github.com/rickiepark/ml-with-pytorch/ch14</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">14</div></div>
+</div>
+
+<!-- ⑮ RNN 섹션 목차 -->
+<div class="slide" id="s15">
+  <div class="hd"><span class="sec-badge">순환 신경망</span><span class="hd-title">2. 순환 신경망</span></div>
+  <div class="body">
+    <div class="sec-intro">
+      <div class="sec-intro-title">순환 신경망</div>
+      <ul class="sec-sub-list">
+        <li><span class="num">2-1</span>순차 데이터 소개</li>
+        <li><span class="num">2-2</span>시퀀스 모델링을 위한 RNN</li>
+        <li><span class="num">2-3</span>파이토치로 시퀀스 모델링을 위한 RNN 구현</li>
+        <li><span class="num">2-4</span>요약</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">15</div></div>
+</div>
+
+<!-- ⑯ 순차 데이터 소개 -->
+<div class="slide" id="s16">
+  <div class="hd"><span class="sec-badge">순환 신경망</span><span class="hd-title">순차 데이터 소개</span></div>
+  <div class="body">
+    <div class="slide-title">순차 데이터와 RNN의 필요성</div>
+    <div class="two-col">
+      <div>
+        <ul class="bullet" style="margin-bottom:10px">
+          <li>시간 또는 순서에 따라 <strong>의존성</strong>을 가지는 데이터</li>
+          <li>이전 정보가 현재 예측에 영향을 미침</li>
+          <li>MLP는 고정 크기 입력·이전 기억 없음</li>
+        </ul>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div class="box" style="padding:6px 10px"><div class="box-title">텍스트·언어</div><div class="box-body">이전 단어 → 다음 단어 예측, 감성 분석, 번역</div></div>
+          <div class="box" style="padding:6px 10px"><div class="box-title">시계열 데이터</div><div class="box-body">주가, 날씨, 센서, 심전도(ECG)</div></div>
+          <div class="box" style="padding:6px 10px"><div class="box-title">음성·오디오</div><div class="box-body">음성 인식(STT), 음악 생성</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="info-box"><strong>은닉 상태(Hidden State)</strong>로 이전 시점 정보를 현재로 전달. 순환(Recurrent) 연결이 과거의 기억을 만듭니다.</div>
+        <div class="formula" style="margin-top:8px">h<sub>t</sub> = tanh(W<sub>xh</sub>·x<sub>t</sub> + W<sub>hh</sub>·h<sub>t-1</sub> + b)</div>
+        <div class="box-title" style="margin-top:10px;margin-bottom:6px">시퀀스 모델링 유형</div>
+        <table class="cmp-table">
+          <tr><th>유형</th><th>예시</th></tr>
+          <tr><td class="rl">다대일 (many-to-one)</td><td>감성 분류</td></tr>
+          <tr><td class="rl">일대다 (one-to-many)</td><td>이미지 캡셔닝</td></tr>
+          <tr><td class="rl">다대다 (many-to-many)</td><td>기계 번역</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">16</div></div>
+</div>
+
+<!-- ⑰ 시퀀스 모델링 RNN -->
+<div class="slide" id="s17">
+  <div class="hd"><span class="sec-badge">순환 신경망</span><span class="hd-title">시퀀스 모델링을 위한 RNN</span></div>
+  <div class="body">
+    <div class="slide-title">RNN 구조와 LSTM</div>
+    <div class="two-col">
+      <div>
+        <div class="box-title" style="margin-bottom:6px">RNN 시간 전개 구조</div>
+        <svg viewBox="0 0 320 115" style="width:100%;height:auto;margin-bottom:6px">
+          <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+          <rect x="10" y="40" width="60" height="36" rx="6" fill="#E6F1FB" stroke="#378ADD" stroke-width="1.5"/>
+          <text x="40" y="62" text-anchor="middle" font-size="11" fill="#185FA5" font-weight="700">RNN</text>
+          <rect x="130" y="40" width="60" height="36" rx="6" fill="#E6F1FB" stroke="#378ADD" stroke-width="1.5"/>
+          <text x="160" y="62" text-anchor="middle" font-size="11" fill="#185FA5" font-weight="700">RNN</text>
+          <rect x="250" y="40" width="60" height="36" rx="6" fill="#E6F1FB" stroke="#378ADD" stroke-width="1.5"/>
+          <text x="280" y="62" text-anchor="middle" font-size="11" fill="#185FA5" font-weight="700">RNN</text>
+          <text x="40" y="26" text-anchor="middle" font-size="10" fill="#888">x₀</text>
+          <line x1="40" y1="29" x2="40" y2="40" stroke="#888" stroke-width="1" marker-end="url(#ar)"/>
+          <text x="160" y="26" text-anchor="middle" font-size="10" fill="#888">x₁</text>
+          <line x1="160" y1="29" x2="160" y2="40" stroke="#888" stroke-width="1" marker-end="url(#ar)"/>
+          <text x="280" y="26" text-anchor="middle" font-size="10" fill="#888">x₂</text>
+          <line x1="280" y1="29" x2="280" y2="40" stroke="#888" stroke-width="1" marker-end="url(#ar)"/>
+          <line x1="70" y1="58" x2="130" y2="58" stroke="#3d2f8f" stroke-width="1.5" marker-end="url(#ar)"/>
+          <text x="100" y="52" text-anchor="middle" font-size="9" fill="#3d2f8f">h₀</text>
+          <line x1="190" y1="58" x2="250" y2="58" stroke="#3d2f8f" stroke-width="1.5" marker-end="url(#ar)"/>
+          <text x="220" y="52" text-anchor="middle" font-size="9" fill="#3d2f8f">h₁</text>
+          <text x="40" y="98" text-anchor="middle" font-size="10" fill="#888">h₀</text>
+          <line x1="40" y1="76" x2="40" y2="92" stroke="#888" stroke-width="1" marker-end="url(#ar)"/>
+          <text x="160" y="98" text-anchor="middle" font-size="10" fill="#888">h₁</text>
+          <line x1="160" y1="76" x2="160" y2="92" stroke="#888" stroke-width="1" marker-end="url(#ar)"/>
+          <text x="280" y="98" text-anchor="middle" font-size="10" fill="#888">h₂</text>
+          <line x1="280" y1="76" x2="280" y2="92" stroke="#888" stroke-width="1" marker-end="url(#ar)"/>
+        </svg>
+        <div class="hl-box">BPTT 문제: 긴 시퀀스에서 기울기 지수적 감소 → 장기 의존성 학습 실패 → LSTM으로 해결</div>
+      </div>
+      <div>
+        <div class="box-title" style="margin-bottom:6px">LSTM 게이트 구조</div>
+        <div class="gate-row">
+          <div class="gate" style="border-color:#E24B4A;background:#fff5f5">
+            <div class="gate-name" style="color:#A32D2D">망각 게이트</div>
+            <div class="gate-desc" style="color:#555">이전 기억 중 버릴 정보 결정<br><code style="font-size:9px">f=σ(Wf·[h,x]+b)</code></div>
+          </div>
+          <div class="gate" style="border-color:#4CAF50;background:#f4fbea">
+            <div class="gate-name" style="color:#27500A">입력 게이트</div>
+            <div class="gate-desc" style="color:#555">새 정보 중 저장할 정보 결정<br><code style="font-size:9px">i=σ(Wi·[h,x]+b)</code></div>
+          </div>
+          <div class="gate" style="border-color:#378ADD;background:#f0f7ff">
+            <div class="gate-name" style="color:#185FA5">출력 게이트</div>
+            <div class="gate-desc" style="color:#555">셀 상태에서 출력할 정보 결정<br><code style="font-size:9px">o=σ(Wo·[h,x]+b)</code></div>
+          </div>
+        </div>
+        <div class="box-title" style="margin-top:8px;margin-bottom:5px">LSTM vs GRU</div>
+        <table class="cmp-table">
+          <tr><th>항목</th><th>LSTM</th><th>GRU</th></tr>
+          <tr><td class="rl">게이트 수</td><td>3개</td><td>2개</td></tr>
+          <tr><td class="rl">파라미터</td><td>많음</td><td>적음</td></tr>
+          <tr><td class="rl">적합 상황</td><td>일반적 우수</td><td>소규모 데이터</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">17</div></div>
+</div>
+
+<!-- ⑱ RNN 구현 1/3 -->
+<div class="slide" id="s18">
+  <div class="hd"><span class="sec-badge">순환 신경망</span><span class="hd-title">파이토치로 시퀀스 모델링을 위한 RNN 구현 1/3</span></div>
+  <div class="body">
+    <div class="slide-title">IMDb 감성 분류 — 데이터 전처리</div>
+    <div class="two-col">
+      <div>
+        <div class="box-title" style="margin-bottom:5px">전처리 파이프라인</div>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">
+          <div class="pipe-box" style="background:#f8f7ff;color:#3d2f8f;border:1px solid #d0c8f0;width:100%;border-radius:5px">1. 텍스트 입력 (IMDb 영화 리뷰)</div>
+          <div style="text-align:center;color:#aaa;font-size:11px">↓</div>
+          <div class="pipe-box" style="background:#E6F1FB;color:#185FA5;border:1px solid #85B7EB;width:100%;border-radius:5px">2. 토큰화 → 단어 사전 구축</div>
+          <div style="text-align:center;color:#aaa;font-size:11px">↓</div>
+          <div class="pipe-box" style="background:#E6F1FB;color:#185FA5;border:1px solid #85B7EB;width:100%;border-radius:5px">3. 정수 인코딩 → 패딩 (고정 길이)</div>
+          <div style="text-align:center;color:#aaa;font-size:11px">↓</div>
+          <div class="pipe-box" style="background:#EAF3DE;color:#27500A;border:1px solid #639922;width:100%;border-radius:5px">4. 임베딩 층 (단어 → 밀집 벡터)</div>
+          <div style="text-align:center;color:#aaa;font-size:11px">↓</div>
+          <div class="pipe-box" style="background:#f8f7ff;color:#3d2f8f;border:1px solid #d0c8f0;width:100%;border-radius:5px">5. LSTM → FC → 긍정/부정 분류</div>
+        </div>
+      </div>
+      <div>
+        <div class="box-title" style="margin-bottom:5px">데이터 로드 코드</div>
+        <pre class="code"><span class="kw">from</span> torchtext.datasets <span class="kw">import</span> IMDB
+<span class="kw">from</span> torchtext.data.utils <span class="kw">import</span> get_tokenizer
+
+tokenizer = <span class="fn">get_tokenizer</span>(<span class="st">'basic_english'</span>)
+
+<span class="fn">build_vocab_from_iterator</span>(
+    map(tokenizer, train_iter),
+    specials=[<span class="st">'&lt;unk&gt;'</span>, <span class="st">'&lt;pad&gt;'</span>]
+)
+
+<span class="kw">def</span> collate_fn(batch):
+    texts, labels = zip(*batch)
+    <span class="kw">return</span> pad_sequence(texts), labels</pre>
+        <div class="info-box" style="margin-top:6px">IMDb: 영화 리뷰 25,000개 훈련 / 25,000개 테스트. 긍정(1) / 부정(0) 이진 분류.</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">18</div></div>
+</div>
+
+<!-- ⑲ RNN 구현 2/3 -->
+<div class="slide" id="s19">
+  <div class="hd"><span class="sec-badge">순환 신경망</span><span class="hd-title">파이토치로 시퀀스 모델링을 위한 RNN 구현 2/3</span></div>
+  <div class="body">
+    <div class="slide-title">LSTM 모델 정의 및 훈련</div>
+    <div class="two-col">
+      <div>
+        <div class="box-title" style="margin-bottom:5px">LSTM 감성 분류 모델</div>
+        <pre class="code"><span class="kw">class</span> SentimentLSTM(nn.Module):
+  <span class="kw">def</span> __init__(self, vocab, emb, hid):
+    super().__init__()
+    self.emb  = nn.<span class="fn">Embedding</span>(vocab, emb,
+                  padding_idx=<span class="num">1</span>)
+    self.lstm = nn.<span class="fn">LSTM</span>(
+      emb, hid,
+      num_layers=<span class="num">2</span>,
+      batch_first=<span class="kw">True</span>,
+      dropout=<span class="num">0.5</span>)
+    self.fc = nn.<span class="fn">Linear</span>(hid, <span class="num">1</span>)
+  <span class="kw">def</span> forward(self, x):
+    emb = self.emb(x)
+    out, (h, c) = self.lstm(emb)
+    <span class="kw">return</span> self.fc(h[<span class="num">-1</span>]).squeeze()</pre>
+      </div>
+      <div>
+        <div class="box-title" style="margin-bottom:5px">훈련 루프</div>
+        <pre class="code">model = <span class="fn">SentimentLSTM</span>(
+    vocab=<span class="fn">len</span>(vocab), emb=<span class="num">64</span>, hid=<span class="num">128</span>)
+optimizer = optim.<span class="fn">Adam</span>(model.parameters())
+criterion = nn.<span class="fn">BCEWithLogitsLoss</span>()
+
+<span class="kw">for</span> epoch <span class="kw">in</span> range(<span class="num">10</span>):
+  <span class="kw">for</span> texts, labels <span class="kw">in</span> train_loader:
+    optimizer.zero_grad()
+    pred = model(texts)
+    loss = <span class="fn">criterion</span>(pred, labels.float())
+    loss.backward()
+    <span class="cm"># 기울기 클리핑 (폭발 방지)</span>
+    nn.utils.clip_grad_norm_(
+        model.parameters(), <span class="num">1.0</span>)
+    optimizer.step()</pre>
+        <div class="hl-box"><strong>기울기 클리핑</strong>: RNN 훈련 시 기울기 폭발(exploding gradient) 방지를 위해 필수 적용</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">19</div></div>
+</div>
+
+<!-- ⑳ RNN 구현 3/3 -->
+<div class="slide" id="s20">
+  <div class="hd"><span class="sec-badge">순환 신경망</span><span class="hd-title">파이토치로 시퀀스 모델링을 위한 RNN 구현 3/3</span></div>
+  <div class="body">
+    <div class="slide-title">문자 수준 텍스트 생성 (『신비의 섬』)</div>
+    <div class="two-col">
+      <div>
+        <div class="box-title" style="margin-bottom:5px">텍스트 생성 코드</div>
+        <pre class="code"><span class="kw">class</span> CharRNN(nn.Module):
+  <span class="kw">def</span> __init__(self, n_chars, emb, hid):
+    super().__init__()
+    self.emb  = nn.<span class="fn">Embedding</span>(n_chars, emb)
+    self.lstm = nn.<span class="fn">LSTM</span>(emb, hid,
+                  batch_first=<span class="kw">True</span>)
+    self.fc   = nn.<span class="fn">Linear</span>(hid, n_chars)
+
+<span class="kw">def</span> sample(model, seed, length,
+           temperature=<span class="num">1.0</span>):
+  chars = list(seed)
+  <span class="kw">for</span> _ <span class="kw">in</span> range(length):
+    x = <span class="fn">encode</span>(chars[<span class="num">-seq_len</span>:])
+    logits = model(x)
+    probs = <span class="fn">softmax</span>(logits/temperature)
+    chars.append(<span class="fn">sample_from</span>(probs))
+  <span class="kw">return</span> <span class="st">''</span>.join(chars)</pre>
+      </div>
+      <div>
+        <div class="box-title" style="margin-bottom:6px">temperature 파라미터 효과</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px">
+          <div class="box" style="padding:7px 10px;border-color:#85B7EB;background:#f0f7ff">
+            <div class="box-title" style="color:#185FA5">낮은 온도 (0.5)</div>
+            <div class="box-body">예측 가능, 반복적 텍스트. 가장 높은 확률 단어 선택.</div>
+          </div>
+          <div class="box" style="padding:7px 10px;border-color:#639922;background:#f4fbea">
+            <div class="box-title" style="color:#27500A">중간 온도 (1.0)</div>
+            <div class="box-body">균형 잡힌 생성. 기본값.</div>
+          </div>
+          <div class="box" style="padding:7px 10px;border-color:#F59E0B;background:#FFF3CD">
+            <div class="box-title" style="color:#854F0B">높은 온도 (1.5+)</div>
+            <div class="box-body">창의적이지만 때로 무작위. 분포를 평탄화.</div>
+          </div>
+        </div>
+        <div class="lab-card">
+          <div class="lab-title">코드 저장소 참조</div>
+          <div class="lab-link">🔗 github.com/rickiepark/ml-with-pytorch/ch15</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">20</div></div>
+</div>
+
+<!-- ㉑ RNN 요약 -->
+<div class="slide" id="s21">
+  <div class="hd"><span class="sec-badge">순환 신경망</span><span class="hd-title">요약</span></div>
+  <div class="body">
+    <div class="three-col" style="margin-bottom:10px">
+      <div class="box" style="border-color:#b5d4f4;background:#f0f7ff">
+        <div class="box-title" style="color:#185FA5">RNN 기초</div>
+        <ul class="bullet">
+          <li>은닉 상태로 이전 정보 전달</li>
+          <li>BPTT로 시간 역전파</li>
+          <li>기울기 소실 문제 존재</li>
+        </ul>
+      </div>
+      <div class="box" style="border-color:#d0c8f0;background:#f8f7ff">
+        <div class="box-title" style="color:#3d2f8f">LSTM / GRU</div>
+        <ul class="bullet">
+          <li>3개 게이트로 장기 기억 유지</li>
+          <li>셀 상태(cell state)로 정보 보존</li>
+          <li>GRU: 경량화 버전 (2개 게이트)</li>
+        </ul>
+      </div>
+      <div class="box" style="border-color:#c0dd97;background:#f4fbea">
+        <div class="box-title" style="color:#27500A">실습 예제</div>
+        <ul class="bullet">
+          <li>IMDb 감성 분류 (~85% 정확도)</li>
+          <li>문자 수준 텍스트 생성</li>
+          <li>temperature로 생성 다양성 조절</li>
+        </ul>
+      </div>
+    </div>
+    <div class="two-col">
+      <div style="background:#1e1e2e;border-radius:8px;padding:10px 14px">
+        <div style="font-size:11px;color:#a6e3a1;font-weight:700;margin-bottom:5px">코드 저장소 & 실습 파일</div>
+        <div style="font-size:10px;color:#cdd6f4;line-height:2">🔗 github.com/rickiepark/ml-with-pytorch/ch14 (CNN)<br>🔗 github.com/rickiepark/ml-with-pytorch/ch15 (RNN)<br>📁 conv_vanilla.html<br>📁 mlp_vs_cnn_vanilla.html</div>
+      </div>
+      <div class="hl-box" style="align-self:start"><strong>다음 강의 (16장):</strong> Transformer와 Attention 메커니즘<br>— RNN의 병렬화 한계를 극복하고 현대 LLM(GPT, BERT)의 기반이 된 구조를 학습합니다.</div>
+    </div>
+  </div>
+  <div class="footer"><div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="pg">21</div></div>
+</div>
+
+<!-- 네비게이션 -->
+<div class="nav">
+  <button id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+  <span class="nav-info" id="nav-info">1 / 21</span>
+  <button id="btn-next" onclick="move(1)">다음 ▶</button>
+  <button onclick="toggleFS()" style="margin-left:8px">⛶ 전체화면</button>
+</div>
+<div class="progress" id="progress"></div>
+
+<script>
+const slides=document.querySelectorAll('.slide');
+const total=slides.length;
+let cur=0;
+const baseSlideWidth=900;
+const baseSlideHeight=506;
+const prog=document.getElementById('progress');
+for(let i=0;i<total;i++){
+  const d=document.createElement('div');
+  d.className='pdot'+(i===0?' active':'');
+  d.title='슬라이드 '+(i+1);
+  d.onclick=()=>go(i);
+  prog.appendChild(d);
+}
+function updateUI(){
+  document.getElementById('nav-info').textContent=(cur+1)+' / '+total;
+  document.getElementById('btn-prev').disabled=cur===0;
+  document.getElementById('btn-next').disabled=cur===total-1;
+  prog.querySelectorAll('.pdot').forEach((d,i)=>{
+    d.className='pdot'+(i===cur?' active':i<cur?' done':'');
+  });
+}
+function go(n){slides[cur].classList.remove('active');cur=n;slides[cur].classList.add('active');updateUI();}
+function move(d){const n=cur+d;if(n>=0&&n<total)go(n);}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' ')move(1);
+  if(e.key==='ArrowLeft')move(-1);
+});
+function updateFullscreenLayout(){
+  const isFullscreen=!!document.fullscreenElement;
+  document.body.classList.toggle('fs-mode',isFullscreen);
+  if(!isFullscreen){
+    document.body.style.removeProperty('--fs-scale');
+    return;
+  }
+  const scale=Math.min(window.innerWidth/baseSlideWidth,window.innerHeight/baseSlideHeight);
+  document.body.style.setProperty('--fs-scale',String(scale));
+}
+function toggleFS(){
+  if(!document.fullscreenElement)document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+document.addEventListener('fullscreenchange',updateFullscreenLayout);
+window.addEventListener('resize',()=>{if(document.fullscreenElement)updateFullscreenLayout();});
+updateUI();
+</script>
+</body>
+</html>

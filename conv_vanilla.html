@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>합성곱 연산 시각화</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f5f5f0; color: #1a1a1a; min-height: 100vh; overflow: hidden; }
+
+  header {
+    background: #fff; border-bottom: 1px solid #e0e0da;
+    padding: 16px 24px; display: flex; align-items: center; gap: 12px;
+  }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header span { font-size: 13px; color: #777; }
+
+  .layout { display: grid; grid-template-columns: 260px 1fr; gap: 0; height: calc(100dvh - 57px); overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar {
+    background: #fff; border-right: 1px solid #e0e0da;
+    padding: 20px 16px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 20px;
+    min-height: 0;
+  }
+  .ctrl-group label { font-size: 12px; color: #777; display: block; margin-bottom: 6px; }
+  .ctrl-group .row { display: flex; align-items: center; gap: 8px; }
+  .ctrl-group input[type=range] { flex: 1; accent-color: #378ADD; }
+  .ctrl-val {
+    font-size: 13px; font-weight: 600; color: #1a1a1a;
+    min-width: 28px; text-align: center;
+    background: #f0f0ea; border-radius: 4px; padding: 2px 6px;
+  }
+
+  .formula-box {
+    background: #f0f4ff; border: 1px solid #c0d4f4; border-radius: 8px;
+    padding: 12px 14px; font-size: 13px; line-height: 1.9;
+  }
+  .formula-box .eq { font-family: 'Courier New', monospace; font-size: 12px; color: #185FA5; }
+  .formula-box .result { font-size: 20px; font-weight: 700; color: #1D9E75; }
+
+  .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat { background: #f5f5f0; border-radius: 8px; padding: 10px; }
+  .stat .s-label { font-size: 11px; color: #888; margin-bottom: 3px; }
+  .stat .s-val { font-size: 16px; font-weight: 700; color: #1a1a1a; }
+  .stat .s-sub { font-size: 10px; color: #aaa; margin-top: 1px; }
+
+  .preset-grid { display: flex; flex-direction: column; gap: 6px; }
+  .preset-btn {
+    width: 100%; text-align: left; padding: 8px 10px;
+    border: 1px solid #e0e0da; border-radius: 6px;
+    background: #fff; cursor: pointer; font-size: 12px; color: #333;
+    transition: background .15s, border-color .15s;
+  }
+  .preset-btn:hover { background: #f0f4ff; border-color: #85B7EB; }
+  .preset-btn.active { background: #E6F1FB; border-color: #378ADD; color: #185FA5; font-weight: 600; }
+  .preset-btn .p-name { font-weight: 600; display: block; margin-bottom: 2px; }
+  .preset-btn .p-desc { font-size: 11px; color: #888; }
+
+  .play-btn {
+    width: 100%; padding: 10px; border-radius: 8px;
+    border: none; background: #378ADD; color: #fff;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: background .15s;
+  }
+  .play-btn:hover { background: #185FA5; }
+  .play-btn.running { background: #E24B4A; }
+
+  /* Main */
+  .main { padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; min-height: 0; }
+
+  .section-title { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 10px; }
+
+  .canvas-row { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+  .canvas-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .canvas-wrap .c-label { font-size: 12px; color: #888; }
+
+  canvas { display: block; border-radius: 6px; }
+
+  .arrow-mid {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; padding-top: 30px;
+  }
+  .arrow-mid .a-icon { font-size: 22px; color: #aaa; }
+  .arrow-mid .a-text { font-size: 11px; color: #bbb; }
+
+  .legend-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .leg { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #666; }
+  .leg-box { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+
+  .step-info {
+    background: #fff; border: 1px solid #e0e0da; border-radius: 8px;
+    padding: 12px 16px; font-size: 13px; color: #555; min-height: 44px;
+  }
+  .step-info strong { color: #185FA5; }
+
+  .speed-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #888; }
+  .speed-row input { accent-color: #378ADD; }
+
+  .section-label { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>합성곱 연산 시각화</h1>
+  <span>스트라이드 & 패딩이 특성 맵 크기에 미치는 영향</span>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div>
+      <div class="section-label">파라미터 설정</div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="ctrl-group">
+          <label>입력 크기 (N×N)</label>
+          <div class="row">
+            <input type="range" id="sl-N" min="4" max="8" step="1" value="6">
+            <span class="ctrl-val" id="v-N">6</span>
+          </div>
+        </div>
+        <div class="ctrl-group">
+          <label>필터 크기 (K×K)</label>
+          <div class="row">
+            <input type="range" id="sl-K" min="2" max="4" step="1" value="3">
+            <span class="ctrl-val" id="v-K">3</span>
+          </div>
+        </div>
+        <div class="ctrl-group">
+          <label>스트라이드 (S)</label>
+          <div class="row">
+            <input type="range" id="sl-S" min="1" max="3" step="1" value="1">
+            <span class="ctrl-val" id="v-S">1</span>
+          </div>
+        </div>
+        <div class="ctrl-group">
+          <label>패딩 (P)</label>
+          <div class="row">
+            <input type="range" id="sl-P" min="0" max="3" step="1" value="0">
+            <span class="ctrl-val" id="v-P">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="formula-box">
+      <div class="section-label" style="color:#185FA5;">출력 크기 공식</div>
+      <div class="eq" id="formula-text">⌊(6 − 3 + 2×0) / 1⌋ + 1</div>
+      <div style="margin-top:4px;font-size:12px;color:#555;">= <span class="result" id="formula-result">4</span> × <span class="result" id="formula-result2">4</span></div>
+    </div>
+
+    <div>
+      <div class="section-label">통계</div>
+      <div class="stat-row" id="stats"></div>
+    </div>
+
+    <div>
+      <div class="section-label">프리셋</div>
+      <div class="preset-grid" id="presets"></div>
+    </div>
+
+    <div>
+      <div class="section-label">애니메이션</div>
+      <button class="play-btn" id="play-btn" onclick="toggleAnim()">
+        <span id="play-icon">▶</span>
+        <span id="play-text">슬라이딩 재생</span>
+      </button>
+      <div class="speed-row" style="margin-top:8px;">
+        <span>빠름</span>
+        <input type="range" id="sl-speed" min="100" max="800" step="100" value="400" style="flex:1">
+        <span>느림</span>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div>
+      <div class="section-title">필터 슬라이딩 시각화</div>
+      <div class="legend-row" style="margin-bottom:12px;">
+        <div class="leg"><div class="leg-box" style="background:#B5D4F4;border:1px solid #85B7EB"></div>패딩 (0)</div>
+        <div class="leg"><div class="leg-box" style="background:#E6F1FB;border:1px solid #85B7EB"></div>입력</div>
+        <div class="leg"><div class="leg-box" style="background:rgba(186,117,23,0.45);border:2px solid #BA7517"></div>필터 위치</div>
+        <div class="leg"><div class="leg-box" style="background:rgba(29,158,117,0.6);border:1px solid #0F6E56"></div>출력 완료</div>
+        <div class="leg"><div class="leg-box" style="background:#1D9E75;border:1px solid #0F6E56"></div>현재 출력</div>
+      </div>
+      <div class="canvas-row">
+        <div class="canvas-wrap">
+          <span class="c-label">입력 (패딩 포함)</span>
+          <canvas id="cv-in"></canvas>
+        </div>
+        <div class="arrow-mid">
+          <div class="a-icon">→</div>
+          <div class="a-text">Conv2d</div>
+        </div>
+        <div class="canvas-wrap">
+          <span class="c-label">출력 특성 맵</span>
+          <canvas id="cv-out"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-info" id="step-info">
+      파라미터를 조정하거나 <strong>슬라이딩 재생</strong>을 눌러 필터가 이동하는 과정을 확인하세요.
+    </div>
+
+    <div>
+      <div class="section-title">PyTorch 코드 미리보기</div>
+      <pre id="code-preview" style="background:#1e1e2e;color:#cdd6f4;padding:14px 16px;border-radius:8px;font-size:12px;line-height:1.8;overflow-x:auto;"></pre>
+    </div>
+
+    <div>
+      <div class="section-title">직관 정리</div>
+      <div id="intuition" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const slN=document.getElementById('sl-N'),
+      slK=document.getElementById('sl-K'),
+      slS=document.getElementById('sl-S'),
+      slP=document.getElementById('sl-P');
+const vN=document.getElementById('v-N'),
+      vK=document.getElementById('v-K'),
+      vS=document.getElementById('v-S'),
+      vP=document.getElementById('v-P');
+const cvIn=document.getElementById('cv-in'),
+      cvOut=document.getElementById('cv-out');
+const ctxIn=cvIn.getContext('2d'),
+      ctxOut=cvOut.getContext('2d');
+
+let animId=null, animStep=0;
+
+const PRESETS=[
+  {name:'기본 (stride=1, pad=0)',desc:'출력이 입력보다 작아짐',N:6,K:3,S:1,P:0},
+  {name:'Same 패딩',desc:'출력 = 입력 크기 유지',N:6,K:3,S:1,P:1},
+  {name:'Stride=2 (다운샘플)',desc:'출력이 절반으로 줄어듦',N:6,K:3,S:2,P:0},
+  {name:'Large kernel',desc:'큰 필터, 넓은 수용 영역',N:8,K:4,S:1,P:0},
+  {name:'Stride=2 + Same pad',desc:'패딩으로 크기 보정',N:6,K:3,S:2,P:1},
+];
+
+function outSize(N,K,S,P){
+  const v=Math.floor((N-K+2*P)/S)+1;
+  return v>0?v:0;
+}
+
+function p(){
+  return {N:+slN.value,K:+slK.value,S:+slS.value,P:+slP.value};
+}
+
+function drawInput(hrRow,hrCol,step){
+  const {N,K,S,P}=p();
+  const eff=N+2*P;
+  const cs=Math.min(Math.floor(320/eff),46);
+  cvIn.width=eff*cs; cvIn.height=eff*cs;
+  ctxIn.clearRect(0,0,cvIn.width,cvIn.height);
+
+  for(let r=0;r<eff;r++){
+    for(let c=0;c<eff;c++){
+      const isPad=r<P||r>=N+P||c<P||c>=N+P;
+      const x=c*cs,y=r*cs;
+      ctxIn.fillStyle=isPad?'#B5D4F4':'#E6F1FB';
+      ctxIn.fillRect(x,y,cs,cs);
+      ctxIn.strokeStyle='rgba(56,138,221,0.3)';
+      ctxIn.lineWidth=0.5;
+      ctxIn.strokeRect(x,y,cs,cs);
+      if(!isPad){
+        const val=(r-P)*N+(c-P)+1;
+        ctxIn.fillStyle='#185FA5';
+        ctxIn.font=`${Math.min(12,cs-6)}px 'Segoe UI',sans-serif`;
+        ctxIn.textAlign='center';
+        ctxIn.textBaseline='middle';
+        ctxIn.fillText(val,x+cs/2,y+cs/2);
+      } else if(cs>14){
+        ctxIn.fillStyle='rgba(56,138,221,0.5)';
+        ctxIn.font=`${Math.min(11,cs-4)}px 'Segoe UI',sans-serif`;
+        ctxIn.textAlign='center';
+        ctxIn.textBaseline='middle';
+        ctxIn.fillText('0',x+cs/2,y+cs/2);
+      }
+    }
+  }
+
+  if(hrRow!=null){
+    const fx=hrCol*cs,fy=hrRow*cs,fw=K*cs,fh=K*cs;
+    ctxIn.fillStyle='rgba(186,117,23,0.35)';
+    ctxIn.fillRect(fx,fy,fw,fh);
+    ctxIn.strokeStyle='#BA7517';
+    ctxIn.lineWidth=2.5;
+    ctxIn.strokeRect(fx+1,fy+1,fw-2,fh-2);
+    if(step!=null&&cs>20){
+      ctxIn.fillStyle='rgba(186,117,23,0.9)';
+      ctxIn.font=`700 ${Math.min(13,cs)}px 'Segoe UI',sans-serif`;
+      ctxIn.textAlign='center';
+      ctxIn.textBaseline='middle';
+      ctxIn.fillText('F',fx+fw/2,fy+fh/2);
+    }
+  }
+}
+
+function drawOutput(curStep){
+  const {N,K,S,P}=p();
+  const M=outSize(N,K,S,P);
+  if(M<=0){
+    cvOut.width=200;cvOut.height=80;
+    ctxOut.clearRect(0,0,200,80);
+    ctxOut.fillStyle='#E24B4A';
+    ctxOut.font='13px Segoe UI,sans-serif';
+    ctxOut.textAlign='center';
+    ctxOut.textBaseline='middle';
+    ctxOut.fillText('출력 없음 — 파라미터 조정 필요',100,40);
+    return;
+  }
+  const cs=Math.min(Math.floor(320/M),56);
+  cvOut.width=M*cs;cvOut.height=M*cs;
+  ctxOut.clearRect(0,0,cvOut.width,cvOut.height);
+  for(let r=0;r<M;r++){
+    for(let c=0;c<M;c++){
+      const idx=r*M+c;
+      const x=c*cs,y=r*cs;
+      const isCur=curStep!=null&&idx===curStep;
+      const isDone=curStep!=null&&idx<curStep;
+      ctxOut.fillStyle=isCur?'#1D9E75':isDone?'rgba(29,158,117,0.45)':'#f5f5f0';
+      ctxOut.fillRect(x,y,cs,cs);
+      ctxOut.strokeStyle=isCur?'#085041':isDone?'#0F6E56':'#ddd';
+      ctxOut.lineWidth=isCur?2:0.5;
+      ctxOut.strokeRect(x+.5,y+.5,cs-1,cs-1);
+      if((isCur||isDone)&&cs>22){
+        ctxOut.fillStyle=isCur?'#fff':'#085041';
+        ctxOut.font=`${isCur?'700 ':''} ${Math.min(12,cs-6)}px 'Segoe UI',sans-serif`;
+        ctxOut.textAlign='center';
+        ctxOut.textBaseline='middle';
+        ctxOut.fillText(idx+1,x+cs/2,y+cs/2);
+      }
+      if(!isCur&&!isDone&&cs>24){
+        ctxOut.fillStyle='#ccc';
+        ctxOut.font=`${Math.min(11,cs-8)}px 'Segoe UI',sans-serif`;
+        ctxOut.textAlign='center';
+        ctxOut.textBaseline='middle';
+        ctxOut.fillText('?',x+cs/2,y+cs/2);
+      }
+    }
+  }
+}
+
+function updateFormula(){
+  const {N,K,S,P}=p();
+  const M=outSize(N,K,S,P);
+  document.getElementById('formula-text').textContent=`⌊(${N} − ${K} + 2×${P}) / ${S}⌋ + 1`;
+  document.getElementById('formula-result').textContent=M>0?M:'—';
+  document.getElementById('formula-result2').textContent=M>0?M:'—';
+}
+
+function updateStats(){
+  const {N,K,S,P}=p();
+  const M=outSize(N,K,S,P);
+  const ratio=M>0&&N>0?Math.round(M/N*100):'—';
+  document.getElementById('stats').innerHTML=`
+    <div class="stat"><div class="s-label">유효 입력</div><div class="s-val">${N+2*P}×${N+2*P}</div><div class="s-sub">패딩 포함</div></div>
+    <div class="stat"><div class="s-label">출력 크기</div><div class="s-val" style="color:#1D9E75">${M>0?M+'×'+M:'—'}</div><div class="s-sub">${M>0?M*M+'개 셀':''}</div></div>
+    <div class="stat"><div class="s-label">크기 비율</div><div class="s-val">${ratio}${ratio!=='—'?'%':''}</div><div class="s-sub">출력/입력</div></div>
+    <div class="stat"><div class="s-label">총 연산 수</div><div class="s-val">${M>0?M*M*K*K:'—'}</div><div class="s-sub">곱셈 횟수</div></div>
+  `;
+}
+
+function updateCode(){
+  const {N,K,S,P}=p();
+  const M=outSize(N,K,S,P);
+  document.getElementById('code-preview').textContent=
+`import torch
+import torch.nn as nn
+
+# 파라미터
+N, K, S, P = ${N}, ${K}, ${S}, ${P}
+
+# 합성곱 층 정의
+conv = nn.Conv2d(
+    in_channels=1,
+    out_channels=1,
+    kernel_size=${K},   # 필터 크기
+    stride=${S},        # 스트라이드
+    padding=${P}        # 패딩
+)
+
+# 입력 텐서 (batch=1, channel=1, H=${N}, W=${N})
+x = torch.randn(1, 1, ${N}, ${N})
+y = conv(x)
+
+print(f"입력: {tuple(x.shape)}")   # (1, 1, ${N}, ${N})
+print(f"출력: {tuple(y.shape)}")   # (1, 1, ${M>0?M:'?'}, ${M>0?M:'?'})
+
+# 공식: ⌊(${N} - ${K} + 2×${P}) / ${S}⌋ + 1 = ${M>0?M:'유효하지 않음'}`;
+}
+
+function updateIntuition(){
+  const {N,K,S,P}=p();
+  const M=outSize(N,K,S,P);
+  const cards=[
+    {
+      title:'스트라이드 효과',
+      color: S===1?'#E6F1FB':'#FFF3CD',
+      border: S===1?'#85B7EB':'#FFC107',
+      text: S===1
+        ? `스트라이드 = 1: 필터가 한 칸씩 이동 → 출력 크기 최대, 정보 손실 최소`
+        : `스트라이드 = ${S}: 필터가 ${S}칸씩 건너뜀 → 출력이 약 1/${S} 축소, 다운샘플링 효과`
+    },
+    {
+      title:'패딩 효과',
+      color: P===0?'#FFF3CD':'#E6F1FB',
+      border: P===0?'#FFC107':'#85B7EB',
+      text: P===0
+        ? `패딩 = 0: 가장자리 정보 덜 반영, 출력이 입력보다 (K-1)=${K-1}만큼 작아짐`
+        : `패딩 = ${P}: 입력에 ${P}겹 0 추가 → 가장자리 보정, ${P===(K-1)/2?'same 패딩! 출력=입력 크기':'출력 크기 보정'}`
+    },
+    {
+      title:'수용 영역 (Receptive Field)',
+      color:'#F0FFF4',border:'#86EFAC',
+      text:`필터 1개가 한 번에 ${K}×${K}=${K*K}개 픽셀을 봄. 층이 깊어질수록 수용 영역이 커짐.`
+    },
+    {
+      title:'현재 설정 요약',
+      color: M>0?'#F0FFF4':'#FFF0F0',
+      border: M>0?'#1D9E75':'#E24B4A',
+      text: M>0
+        ? `입력 ${N}×${N} → 출력 ${M}×${M} (${Math.round(M/N*100)}%). 총 ${M*M}번 합성곱 연산.`
+        : `⚠️ 유효하지 않은 파라미터 조합. 패딩을 늘리거나 필터/스트라이드를 줄이세요.`
+    },
+  ];
+  document.getElementById('intuition').innerHTML=cards.map(c=>`
+    <div style="background:${c.color};border:1px solid ${c.border};border-radius:8px;padding:12px 14px;">
+      <div style="font-size:12px;font-weight:600;color:#333;margin-bottom:5px;">${c.title}</div>
+      <div style="font-size:12px;color:#555;line-height:1.6;">${c.text}</div>
+    </div>
+  `).join('');
+}
+
+function updatePresets(){
+  const {N,K,S,P}=p();
+  document.getElementById('presets').innerHTML=PRESETS.map((pr,i)=>`
+    <button class="preset-btn ${pr.N===N&&pr.K===K&&pr.S===S&&pr.P===P?'active':''}"
+      onclick="applyPreset(${i})">
+      <span class="p-name">${pr.name}</span>
+      <span class="p-desc">${pr.desc}</span>
+    </button>
+  `).join('');
+}
+
+function applyPreset(i){
+  const pr=PRESETS[i];
+  slN.value=pr.N; slK.value=pr.K; slS.value=pr.S; slP.value=pr.P;
+  update();
+}
+
+function updateStepInfo(step){
+  const {N,K,S,P}=p();
+  const M=outSize(N,K,S,P);
+  if(step==null||M<=0){
+    document.getElementById('step-info').innerHTML=
+      '파라미터를 조정하거나 <strong>슬라이딩 재생</strong>을 눌러 필터가 이동하는 과정을 확인하세요.';
+    return;
+  }
+  const r=Math.floor(step/M),c=step%M;
+  const ir=r*S,ic=c*S;
+  document.getElementById('step-info').innerHTML=
+    `<strong>Step ${step+1}/${M*M}</strong> — 필터 위치: 입력 (${ir},${ic})~(${ir+K-1},${ic+K-1}) → 출력 셀 [행${r+1}, 열${c+1}] 계산 완료`;
+}
+
+function render(step){
+  const {N,K,S,P}=p();
+  const M=outSize(N,K,S,P);
+  if(step==null){drawInput(null,null,null);drawOutput(null);updateStepInfo(null);return;}
+  const r=Math.floor(step/M),c=step%M;
+  drawInput(r*S,c*S,step);
+  drawOutput(step);
+  updateStepInfo(step);
+}
+
+function stopAnim(){
+  if(animId){clearInterval(animId);animId=null;}
+  document.getElementById('play-btn').classList.remove('running');
+  document.getElementById('play-icon').textContent='▶';
+  document.getElementById('play-text').textContent='슬라이딩 재생';
+}
+
+function toggleAnim(){
+  if(animId){stopAnim();return;}
+  const {N,K,S,P}=p();
+  const M=outSize(N,K,S,P);
+  if(M<=0)return;
+  animStep=0;
+  document.getElementById('play-btn').classList.add('running');
+  document.getElementById('play-icon').textContent='■';
+  document.getElementById('play-text').textContent='정지';
+  render(animStep);
+  const speed=+document.getElementById('sl-speed').value;
+  animId=setInterval(()=>{
+    animStep++;
+    if(animStep>=M*M){stopAnim();render(M*M-1);return;}
+    render(animStep);
+  },speed);
+}
+
+function update(){
+  const {N,K,S,P}=p();
+  vN.textContent=N; vK.textContent=K; vS.textContent=S; vP.textContent=P;
+  slK.max=Math.max(2,N+2*P);
+  stopAnim();
+  updateFormula();
+  updateStats();
+  updateCode();
+  updateIntuition();
+  updatePresets();
+  render(null);
+}
+
+[slN,slK,slS,slP].forEach(s=>s.addEventListener('input',update));
+update();
+</script>
+</body>
+</html>
